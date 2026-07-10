@@ -280,14 +280,14 @@
             <div class="flex bg-amber-100 p-1 rounded-xl border border-amber-200">
               <button 
                 @click="speechEngineMode = 'auto'" 
-                :class="speechEngineMode === 'auto' ? 'bg-amber-500 text-white shadow-sm' : 'text-amber-800 hover:bg-amber-200'"
+                :class="speechEngineMode === 'auto' ? 'bg-amber-500 text-white shadow-sm font-bold' : 'text-amber-800 hover:bg-amber-200'"
                 class="px-2.5 py-1.5 rounded-lg text-2xs font-bold transition"
               >
                 อัตโนมัติ (Auto)
               </button>
               <button 
                 @click="speechEngineMode = 'online'" 
-                :class="speechEngineMode === 'online' ? 'bg-amber-500 text-white shadow-sm' : 'text-amber-800 hover:bg-amber-200'"
+                :class="speechEngineMode === 'online' ? 'bg-amber-500 text-white shadow-sm font-bold' : 'text-amber-800 hover:bg-amber-200'"
                 class="px-2.5 py-1.5 rounded-lg text-2xs font-bold transition flex items-center gap-1"
                 title="บังคับดึงเสียงพูดสังเคราะห์จากคลาวด์ Youdao เสียงคมชัดแน่นอนในแอป LINE"
               >
@@ -403,8 +403,10 @@
                     <span class="bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full text-[10px] font-bold">{{ card.category }}</span>
                     
                     <!-- Sound Icon - click strictly speaks and prevents card flipped -->
+                    <!-- ปรับปรุงให้ดักจับทั้ง click และ touchstart เพื่อป้องกัน LINE App WebView บล็อกเสียง -->
                     <button 
-                      @click.stop="speakAndMarkQuiz(card)" 
+                      @click.stop="speakAndMarkQuiz(card, $event)" 
+                      @touchstart.stop="speakAndMarkQuiz(card, $event)"
                       class="bg-gradient-to-r from-orange-400 to-amber-500 hover:from-orange-500 hover:to-amber-600 text-white rounded-xl p-2 shadow-sm transition transform active:scale-90 flex items-center gap-1"
                       title="กดเพื่อออกเสียงตัวนี้"
                     >
@@ -530,9 +532,9 @@
               <div>
                 <label class="block text-xs font-semibold text-slate-500 mb-1.5">รูปแบบเส้นประนำสายตาสำหรับตัด</label>
                 <div class="grid grid-cols-3 gap-1.5">
-                  <button @click="borderStyle = 'dotted'" :class="borderStyle === 'dotted' ? 'bg-slate-800 text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'" class="py-1.5 rounded text-2xs font-semibold transition">เส้นประ ( . . )</button>
-                  <button @click="borderStyle = 'solid'" :class="borderStyle === 'solid' ? 'bg-slate-800 text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'" class="py-1.5 rounded text-2xs font-semibold transition">เส้นทึบ ( — )</button>
-                  <button @click="borderStyle = 'none'" :class="borderStyle === 'none' ? 'bg-slate-800 text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'" class="py-1.5 rounded text-2xs font-semibold transition">ไม่มีเส้นขอบ</button>
+                  <button @click="borderStyle = 'dotted'" :class="borderStyle === 'dotted' ? 'bg-slate-800 text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'" class="py-1.5 rounded text-2xs font-semibold transition">... เส้นประ</button>
+                  <button @click="borderStyle = 'solid'" :class="borderStyle === 'solid' ? 'bg-slate-800 text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'" class="py-1.5 rounded text-2xs font-semibold transition">— เส้นทึบ</button>
+                  <button @click="borderStyle = 'none'" :class="borderStyle === 'none' ? 'bg-slate-800 text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'" class="py-1.5 rounded text-2xs font-semibold transition">ไม่มีเส้น</button>
                 </div>
               </div>
 
@@ -744,7 +746,7 @@
                 >
               </div>
 
-              <button @click="resetToDefault" class="text-rose-500 hover:text-rose-600 font-bold text-xs flex items-center gap-1 transition shrink-0">
+              <button @click="showResetModal = true" class="text-rose-500 hover:text-rose-600 font-bold text-xs flex items-center gap-1 transition shrink-0">
                 <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
                 รีเซ็ตค่าเริ่มต้นของแบบเรียน (49 คำ)
               </button>
@@ -773,7 +775,8 @@
                     </td>
                     <td class="py-2.5 px-2">
                       <div class="flex items-center gap-1.5">
-                        <button @click="speakChinese(card.chinese, true)" class="p-1 rounded bg-orange-100 hover:bg-orange-200 text-orange-600 transition">
+                        <!-- ดักทั้ง click และ touchstart เพื่อป้องกัน LINE App WebView บล็อกเสียง -->
+                        <button @click="speakAndMarkQuiz(card, $event)" @touchstart.stop="speakAndMarkQuiz(card, $event)" class="p-1 rounded bg-orange-100 hover:bg-orange-200 text-orange-600 transition">
                           <i data-lucide="volume-2" class="w-3.5 h-3.5"></i>
                         </button>
                         <input v-model="card.chinese" type="text" class="font-chinese font-semibold text-slate-800 border border-slate-200 rounded-lg px-2 py-1 w-24">
@@ -963,10 +966,31 @@
       </div>
     </div>
 
+    <!-- CUSTOM CONFIRMATION RESET MODAL (replaces native browser popups) -->
+    <div v-if="showResetModal" class="no-print fixed inset-0 z-[110] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+      <div class="bg-white rounded-3xl shadow-2xl max-w-sm w-full p-6 text-center space-y-4">
+        <div class="bg-rose-100 text-rose-600 p-3 rounded-full inline-block">
+          <i data-lucide="rotate-ccw" class="w-8 h-8"></i>
+        </div>
+        <h3 class="font-title text-base font-bold text-slate-800">ยืนยันล้างข้อมูลและกู้คืนค่าเริ่มต้น?</h3>
+        <p class="text-xs text-slate-500 leading-relaxed">
+          ระบบจะสลับข้อมูลกลับเป็นกลุ่มคำศัพท์เริ่มต้นตามแบบเรียนของกระทรวงศึกษาทั้งหมดและเคลียร์ประวัติการแก้ไขในคลังคำศัพท์เดิมของคุณครูครับ
+        </p>
+        <div class="flex items-center gap-2 pt-2">
+          <button @click="showResetModal = false" class="w-1/2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl text-xs transition">
+            ยกเลิก
+          </button>
+          <button @click="confirmResetToDefault" class="w-1/2 bg-rose-500 hover:bg-rose-600 text-white font-bold py-2.5 rounded-xl text-xs transition shadow-sm">
+            ยืนยันรีเซ็ต
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- 5. FOOTER -->
     <footer class="no-print bg-slate-900 text-slate-400 py-6 text-center text-xs mt-auto border-t border-slate-800">
       <div class="max-w-7xl mx-auto px-4">
-        <p class="font-title font-medium text-slate-300">© Primary Chinese Flashcard System v1.8</p>
+        <p class="font-title font-medium text-slate-300">© Primary Chinese Flashcard System v1.9</p>
         <p class="mt-1">ออกแบบโดยคำนึงถึงสุขภาวะการเรียนรู้วัยเรียนและการใช้จัดกิจกรรมสำหรับคุณครูภาษาจีนไทย</p>
       </div>
     </footer>
@@ -1021,21 +1045,21 @@
           { id: 33, category: "3. เวลาและนาฬิกา (Time)", chinese: "七点三刻", pinyin: "qī diǎn sān kè", thai: "7 โมง 45 นาที", emoji: "🕗" },
           { id: 34, category: "3. เวลาและนาฬิกา (Time)", chinese: "十点五十五分", pinyin: "shí diǎn wǔ shí wǔ fēn", thai: "10 โมง 55 นาที", emoji: "🕙" },
           { id: 35, category: "3. เวลาและนาฬิกา (Time)", chinese: "现在几点？", pinyin: "xiàn zài jǐ diǎn?", thai: "ตอนนี้กี่โมงแล้ว?", emoji: "⌚" },
-          { id: 36, category: "3. เวลาและนาฬิกา (Time)", chinese: "现在两点一刻。", pinyin: "xiàn zài liǎng diǎn yí kè", thai: "ตอนนี้บ่ายสองโมงสิบห้านาที", emoji: "🕑" },
+          { id: 36, category: "3. เวลาและนาฬิกา (Time)", chinese: "现​​​在两点一刻。", pinyin: "xiàn zài liǎng diǎn yí kè", thai: "ตอนนี้บ่ายสองโมงสิบห้านาที", emoji: "🕑" },
           { id: 37, category: "3. เวลาและนาฬิกา (Time)", chinese: "你几点去上学？", pinyin: "nǐ jǐ diǎn qù shàng xué?", thai: "คุณไปโรงเรียนกี่โมง?", emoji: "🎒" },
           { id: 38, category: "3. เวลาและนาฬิกา (Time)", chinese: "你几点放学回家？", pinyin: "nǐ jǐ diǎn fàng xué huí jiā?", thai: "คุณเลิกเรียนกลับบ้านกี่โมง?", emoji: "🏠" },
 
           { id: 39, category: "4. วันเกิด & อารมณ์ (Birthday)", chinese: "生日", pinyin: "shēng rì", thai: "วันเกิด", emoji: "🎂" },
-          { id: 40, category: "4. วันเกิด & อารมณ์ (Birthday)", chinese: "今天是我的生日。", pinyin: "jīn tiān shì wǒ de shēng rì", thai: "วันนี้เป็นวันเกิดของฉัน", emoji: "🎁" },
+          { id: 40, category: "4. วันเกิด & อารมณ์ (Birthday)", chinese: "今天是我的生日。", pinyin: "jīn tiān shì wǒ de sheng rì", thai: "วันนี้เป็นวันเกิดของฉัน", emoji: "🎁" },
           { id: 41, category: "4. วันเกิด & อารมณ์ (Birthday)", chinese: "开心", pinyin: "kāi xīn", thai: "ดีใจ / มีความสุข", emoji: "😊" },
           { id: 42, category: "4. วันเกิด & อารมณ์ (Birthday)", chinese: "祝", pinyin: "zhù", thai: "อวยพร / ขอให้", emoji: "🤝" },
           { id: 43, category: "4. วันเกิด & อารมณ์ (Birthday)", chinese: "快乐", pinyin: "kuài lè", thai: "มีความสุข", emoji: "🎉" },
-          { id: 44, category: "4. วันเกิด & อารมณ์ (Birthday)", chinese: "你的生日เป็น几月几号？", pinyin: "nǐ de shēng rì shì jǐ yuè jǐ hao?", thai: "วันเกิดของคุณคือวันที่เท่าไหร่?", emoji: "📅" },
-          { id: 45, category: "4. วันเกิด & อารมณ์ (Birthday)", chinese: "我的生日เป็น五月十号。", pinyin: "wǒ de shēng rì shì wǔ yuè shí hào", thai: "วันเกิดของฉันคือวันที่ 10 พฤษภาคม", emoji: "🎈" },
+          { id: 44, category: "4. วันเกิด & อารมณ์ (Birthday)", chinese: "你的生日是几月几号？", pinyin: "nǐ de sheng rì s​​hì jǐ yuè jǐ hào", thai: "วันเกิดของคุณคือวันที่เท่าไหร่?", emoji: "📅" },
+          { id: 45, category: "4. วันเกิด & อารมณ์ (Birthday)", chinese: "我的生日是五月十号。", pinyin: "wǒ de sheng rì s​​hì wǔ yuè shí hào", thai: "วันเกิดของฉันคือวันที่ 10 พฤษภาคม", emoji: "🎈" },
           { id: 46, category: "4. วันเกิด & อารมณ์ (Birthday)", chinese: "你几岁了？", pinyin: "nǐ jǐ suì le?", thai: "คุณอายุเท่าไหร่?", emoji: "🧒" },
           { id: 47, category: "4. วันเกิด & อารมณ์ (Birthday)", chinese: "我七岁了。", pinyin: "wǒ qī suì le", thai: "ฉันอายุเจ็ดขวบแล้ว", emoji: "7️⃣" },
-          { id: 48, category: "4. วันเกิด & อารมณ์ (Birthday)", chinese: "คุณวันนี้มีความสุขไหม？", pinyin: "nǐ jīn tiān kāi xīn ma?", thai: "วันนี้คุณมีความสุขไหม?", emoji: "😄" },
-          { id: 49, category: "4. วันเกิด & อารมณ์ (Birthday)", chinese: "我วันนี้很开心。", pinyin: "wǒ jīn tiān hěn kāi xīn", thai: "วันนี้ฉันมีความสุขมาก", emoji: "🥰" }
+          { id: 48, category: "4. วันเกิด & อารมณ์ (Birthday)", chinese: "你今天开心吗？", pinyin: "nǐ jīn tiān kāi xīn ma?", thai: "วันนี้คุณมีความสุขไหม?", emoji: "😄" },
+          { id: 49, category: "4. วันเกิด & อารมณ์ (Birthday)", chinese: "我今天很开心。", pinyin: "wǒ jīn tiān hěn kāi xīn", thai: "วันนี้ฉันมีความสุขมาก", emoji: "🥰" }
         ];
 
         // Custom Toast Notifications
@@ -1069,6 +1093,7 @@
         const borderStyle = ref('dotted'); 
         const selectedTheme = ref('pastel-rose');
         const showHelpModal = ref(false);
+        const showResetModal = ref(false); // Custom Vue reset confirmation modal
 
         // --- INTERACTIVE CLASSROOM STATE (PLAY MODE) ---
         const playCategory = ref('All');
@@ -1182,7 +1207,7 @@
         });
 
         // --- CLOUD ONLINE TTS FALLBACK ENGINE (Youdao - CORS Free & Referrer Safe!) ---
-        const speakWithOnlineTTS = (cleanText) => {
+        const speakWithOnlineTTS = (cleanText, isUserInitiated = false) => {
           // Initialize global audio element if not yet instantiated
           if (!globalAudio) {
             globalAudio = new Audio();
@@ -1211,7 +1236,9 @@
                 globalAudio.src = baiduTtsUrl;
                 globalAudio.play().catch(e => {
                   console.error("All Online Fallback TTS players failed:", e);
-                  triggerToast('⚠️ ไม่สามารถเล่นเสียงได้เนื่องจากระบบความปลอดภัยของเบราว์เซอร์หรือเครื่องปิดเสียงสั่นไว้', 'error');
+                  if (isUserInitiated) {
+                    triggerToast('⚠️ ไม่สามารถเล่นเสียงได้เนื่องจากระบบความปลอดภัยเบราว์เซอร์หรือเครื่องเปิดโหมดปิดเสียง', 'error');
+                  }
                 });
               });
             }
@@ -1220,7 +1247,7 @@
           }
         };
 
-        // --- ROBUST HYBRID TTS SPEECH ENGINE ---
+        // --- ROBUST HYBRID TTS SPEECH ENGINE (RE-DESIGNED FOR SYNCHRONOUS MOBILE ACCURACY) ---
         const speakChinese = (text, isUserInitiated = false) => {
           if (!text) return;
           const cleanText = text.replace(/？|。|，/g, '').trim();
@@ -1233,52 +1260,52 @@
           // Detect mobile device/tablet environment
           const isMobileDevice = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
           
-          // Auto-Autoplay voice rules: iOS/Android requires user activation for SpeechSynthesis.
-          // Therefore, automated events (like automatic quiz audio, watch-triggers) should prefer Youdao Online TTS.
-          const forceOnlineTTS = speechEngineMode.value === 'online' || (isMobileDevice && !isUserInitiated);
+          // On mobile, we ALWAYS bypass local buggy SpeechSynthesis synchronously inside User Gestures.
+          // This avoids the asynchronous lost-activation issue causing the browser block completely.
+          const forceOnlineTTS = speechEngineMode.value === 'online' || isMobileDevice || !('speechSynthesis' in window);
 
           if (forceOnlineTTS) {
-            speakWithOnlineTTS(cleanText);
+            speakWithOnlineTTS(cleanText, isUserInitiated);
+          } else {
+            speakWithNativeTTS(cleanText, isUserInitiated);
+          }
+        };
+
+        // Native speech synthesization for stable desktop environments
+        const speakWithNativeTTS = (cleanText, isUserInitiated = false) => {
+          if (!('speechSynthesis' in window)) {
+            speakWithOnlineTTS(cleanText, isUserInitiated);
             return;
           }
 
-          if ('speechSynthesis' in window && window.speechSynthesis) {
-            try {
-              // Reset prior speech pipelines
-              window.speechSynthesis.cancel();
+          try {
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(cleanText);
+            utterance.lang = 'zh-CN';
+            utterance.rate = speechRate.value;
 
-              // Direct synchronous execution strictly prevents iOS activation loss
-              const utterance = new SpeechSynthesisUtterance(cleanText);
-              utterance.lang = 'zh-CN';
-              utterance.rate = speechRate.value;
+            // Retain reference globally to block Garbage Collection bugs
+            activeSpeechUtterance = utterance;
 
-              // Retain global reference to block garbage collection mute issues
-              activeSpeechUtterance = utterance;
-
-              const voices = window.speechSynthesis.getVoices();
-              let cnVoice = voices.find(v => v.lang === 'zh-CN' || v.lang === 'zh_CN' || v.lang.toLowerCase().includes('zh-hans'));
-              if (!cnVoice) {
-                cnVoice = voices.find(v => v.lang.toLowerCase().includes('zh'));
-              }
-              if (cnVoice) {
-                utterance.voice = cnVoice;
-              }
-
-              // On error, seamlessly fallback to Online Youdao engine immediately!
-              utterance.onerror = (e) => {
-                console.warn("SpeechSynthesis error triggered, falling back to cloud TTS...", e);
-                speakWithOnlineTTS(cleanText);
-              };
-
-              window.speechSynthesis.speak(utterance);
-
-            } catch (err) {
-              console.warn("SpeechSynthesis caught crash, falling back to cloud TTS...", err);
-              speakWithOnlineTTS(cleanText);
+            const voices = window.speechSynthesis.getVoices();
+            let cnVoice = voices.find(v => v.lang === 'zh-CN' || v.lang === 'zh_CN' || v.lang.toLowerCase().includes('zh-hans'));
+            if (!cnVoice) {
+              cnVoice = voices.find(v => v.lang.toLowerCase().includes('zh'));
             }
-          } else {
-            // Synthesis completely absent in the browser (LINE WebView, Facebook In-app)
-            speakWithOnlineTTS(cleanText);
+            if (cnVoice) {
+              utterance.voice = cnVoice;
+            }
+
+            // Async fallback is perfectly safe on Desktop Browsers
+            utterance.onerror = (e) => {
+              console.warn("Desktop Native TTS error, falling back to online TTS:", e);
+              speakWithOnlineTTS(cleanText, isUserInitiated);
+            };
+
+            window.speechSynthesis.speak(utterance);
+          } catch (err) {
+            console.warn("Desktop SpeechSynthesis threw error, playing online TTS fallback:", err);
+            speakWithOnlineTTS(cleanText, isUserInitiated);
           }
         };
 
@@ -1306,10 +1333,10 @@
           }
         };
 
-        // Forced Troubleshooting Speech button
+        // Forced Troubleshooting Speech button (Guaranteed synchronous triggering!)
         const testAndForceUnlockVoice = () => {
           hasUnlockedAudio.value = true;
-          // Speak test phrase
+          // Speak test phrase synchronously
           speakChinese("你好", true);
           triggerToast('🔊 ส่งสัญญาณเสียงภาษาจีน "หนีห่าว" ไปยังลำโพงแล้ว! หากเงียบ โปรดปิดโหมดสั่น/ปุ่มปิดเสียงสั่นบนข้าง iPad ของคุณครูครับ', 'warning');
         };
@@ -1460,7 +1487,16 @@
         };
 
         // Directly trigger speech sound from board button (User-initiated direct click!)
-        const speakAndMarkQuiz = (card) => {
+        // ปรับปรุงแก้ไข: เพิ่มการตรวจสอบ touchstart อีเวนต์ของ LINE และป้องกันการสั่นสะเทือนเพื่อไม่ให้ดีเลย์
+        let lastSpeakTime = 0;
+        const speakAndMarkQuiz = (card, event) => {
+          if (event) {
+            const now = Date.now();
+            if (now - lastSpeakTime < 400) {
+              return; // บล็อกสัญญาณซ้ำซ้อนภายใน 400ms จากการแตะ Touchstart และ Click ซ้อนกันบนมือถือ
+            }
+            lastSpeakTime = now;
+          }
           speakChinese(card.chinese, true);
         };
 
@@ -1733,12 +1769,15 @@
           triggerToast('🗑️ ลบคำศัพท์ออกจากคลังแล้ว', 'neutral');
         };
 
+        const confirmResetToDefault = () => {
+          cards.value = JSON.parse(JSON.stringify(defaultCards));
+          fillBoardWithShuffle();
+          showResetModal.value = false;
+          triggerToast('🔄 คืนค่าข้อมูลแบบเรียนทั้งหมดเรียบร้อย!', 'success');
+        };
+
         const resetToDefault = () => {
-          if (confirm('ยืนยันล้างข้อมูลที่แก้ไขและสลับกลับเป็นคำศัพท์เดิมจากหนังสือ?')) {
-            cards.value = JSON.parse(JSON.stringify(defaultCards));
-            fillBoardWithShuffle();
-            triggerToast('🔄 คืนค่าข้อมูลแบบเรียนทั้งหมดเรียบร้อย!', 'success');
-          }
+          showResetModal.value = true;
         };
 
         const printFlashcards = () => {
@@ -1782,6 +1821,7 @@
           borderStyle,
           selectedTheme,
           showHelpModal,
+          showResetModal,
           filteredManagerCards,
           printablePages,
           categories,
@@ -1791,6 +1831,7 @@
           addNewCard,
           deleteCard,
           resetToDefault,
+          confirmResetToDefault,
           printFlashcards,
           openHelpModal,
           getCardFontSize,
