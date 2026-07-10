@@ -103,7 +103,7 @@
 </head>
 <body class="bg-slate-50 text-slate-800">
 
-  <div id="app" class="min-h-screen flex flex-col relative">
+  <div id="app" class="min-h-screen flex flex-col relative" @click="handleFirstInteraction">
     
     <!-- Toast Notification Container -->
     <div class="fixed top-5 right-5 z-[200] space-y-2 pointer-events-none max-w-sm w-full">
@@ -225,8 +225,8 @@
           </div>
 
           <!-- TTS & Quiz Control Station -->
-          <div class="flex flex-wrap items-center gap-3 bg-rose-50/50 p-3 rounded-2xl border border-rose-100/60 lg:max-w-md w-full justify-between">
-            <div class="space-y-1">
+          <div class="flex flex-col xl:flex-row items-stretch xl:items-center gap-3 bg-rose-50/50 p-3 rounded-2xl border border-rose-100/60 lg:max-w-md w-full">
+            <div class="space-y-1 flex-grow">
               <span class="text-xs font-bold text-rose-700 flex items-center gap-1">
                 <i data-lucide="speech" class="w-4 h-4 text-rose-500"></i>
                 ควบคุมความเร็วเสียง
@@ -238,29 +238,44 @@
                   min="0.3" 
                   max="1.2" 
                   step="0.1" 
-                  class="w-24 h-1 bg-rose-200 rounded-lg appearance-none cursor-pointer accent-rose-500"
+                  class="w-full h-1.5 bg-rose-200 rounded-lg appearance-none cursor-pointer accent-rose-500"
                 >
-                <span class="text-[10px] font-bold text-rose-600">{{ speechRate }}x</span>
+                <span class="text-[10px] font-bold text-rose-600 shrink-0">{{ speechRate }}x</span>
               </div>
             </div>
 
             <!-- Quiz game interactive button -->
-            <div class="flex flex-col items-end gap-1">
+            <div class="flex flex-col items-stretch xl:items-end gap-1 justify-center">
               <button 
                 @click="triggerListeningQuiz" 
-                class="bg-rose-500 hover:bg-rose-600 text-white font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-1.5 shadow transition-all transform active:scale-95"
+                class="bg-rose-500 hover:bg-rose-600 text-white font-bold px-4 py-2 rounded-xl text-xs flex items-center justify-center gap-1.5 shadow transition-all transform active:scale-95 shrink-0"
               >
                 <i data-lucide="volume-2" class="w-4 h-4 animate-bounce"></i>
                 🔊 สุ่มคำถามเสียงจีน
               </button>
-              <span class="text-[9px] text-rose-600" v-if="quizTargetId">
-                (นักเรียนฟังเสียงคู่คี่ แล้วจิ้มใบที่ถูก!)
-              </span>
-              <span class="text-[9px] text-slate-400" v-else>
-                (คลิกเพื่อสุ่มโจทย์ทายคำ)
+              <span class="text-[9px] text-rose-600 text-center xl:text-right" v-if="quizTargetId">
+                (จับคู่เสียง แล้วจิ้มใบที่ถูก!)
               </span>
             </div>
           </div>
+        </div>
+
+        <!-- MOBILE / TABLET AUDIO TROUBLESHOOTER BANNER -->
+        <div class="bg-amber-50 border border-amber-200 p-4 rounded-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div class="flex items-start gap-2.5">
+            <i data-lucide="volume-x" class="w-5 h-5 text-amber-600 mt-0.5 shrink-0"></i>
+            <div>
+              <p class="text-xs font-bold text-amber-800">🔊 เปิดในแท็บเล็ต/มือถือแล้วไม่มีเสียง?</p>
+              <p class="text-[11px] text-slate-600 mt-0.5 leading-relaxed">
+                • <strong>สำหรับ iPad/iPhone:</strong> โปรดตรวจสอบว่าได้<strong>ปิด "โหมดปิดเสียง" (ปุ่มสวิตช์สั่นสีแดงข้างเครื่อง หรือไอคอนกระดิ่งใน Control Center)</strong> หรือยัง เพราะ iOS จะปิดกั้นเสียงพูด TTS ทันทีหากเปิดโหมดสั่นไว้<br>
+                • <strong>สำหรับ Android:</strong> หากแตะแล้วเงียบ แปลว่าระบบตั้งค่าเครื่องยังไม่มีข้อมูลเสียงพูดภาษาจีน คุณครูสามารถกดปุ่มทดสอบและเปิดสิทธิ์ด้านขวาเพื่อบังคับปลดล็อกเสียงได้ครับ
+              </p>
+            </div>
+          </div>
+          <button @click="testAndForceUnlockVoice" class="bg-amber-500 hover:bg-amber-600 text-white font-bold px-4 py-2.5 rounded-xl text-xs flex items-center justify-center gap-1.5 shrink-0 shadow transform active:scale-95 transition-all">
+            <i data-lucide="play-circle" class="w-4 h-4"></i>
+            แตะตรงนี้เพื่อทดสอบ & ปลดล็อกเสียง
+          </button>
         </div>
 
         <!-- LEARNING SCOREBOARD AND STUDY PROGRESS WIDGET -->
@@ -344,7 +359,8 @@
             :key="card.id ? card.id + '-' + index : index"
             class="relative transition-all duration-500 transform"
             :class="{ 
-              'opacity-0 scale-75 pointer-events-none': card.isCleared || card.isReplacing, 
+              'opacity-0 scale-75 pointer-events-none w-0 h-0 overflow-hidden absolute': card.isCleared,
+              'opacity-0 scale-90 pointer-events-none': card.isReplacing, 
               'opacity-100 scale-100': !card.isCleared && !card.isReplacing 
             }"
           >
@@ -935,6 +951,9 @@
   <script>
     const { createApp, ref, computed, onMounted, nextTick, watch } = Vue;
 
+    // Global reference to prevent Garbage Collection mute bug in mobile Chrome/Safari
+    let activeSpeechUtterance = null;
+
     createApp({
       setup() {
         // Initial vocabulary data corresponding to uploaded textbook pages
@@ -985,11 +1004,11 @@
           { id: 41, category: "4. วันเกิด & อารมณ์ (Birthday)", chinese: "开心", pinyin: "kāi xīn", thai: "ดีใจ / มีความสุข", emoji: "😊" },
           { id: 42, category: "4. วันเกิด & อารมณ์ (Birthday)", chinese: "祝", pinyin: "zhù", thai: "อวยพร / ขอให้", emoji: "🤝" },
           { id: 43, category: "4. วันเกิด & อารมณ์ (Birthday)", chinese: "快乐", pinyin: "kuài lè", thai: "มีความสุข", emoji: "🎉" },
-          { id: 44, category: "4. วันเกิด & อารมณ์ (Birthday)", chinese: "你的生日是几月几号？", pinyin: "nǐ de shēng rì shì jǐ yuè jǐ hao?", thai: "วันเกิดของคุณคือวันที่เท่าไหร่?", emoji: "📅" },
+          { id: 44, category: "4. วันเกิด & อารมณ์ (Birthday)", chinese: "你的生日เป็น几月几号？", pinyin: "nǐ de shēng rì shì jǐ yuè jǐ hao?", thai: "วันเกิดของคุณคือวันที่เท่าไหร่?", emoji: "📅" },
           { id: 45, category: "4. วันเกิด & อารมณ์ (Birthday)", chinese: "我的生日是五月十号。", pinyin: "wǒ de shēng rì shì wǔ yuè shí hào", thai: "วันเกิดของฉันคือวันที่ 10 พฤษภาคม", emoji: "🎈" },
           { id: 46, category: "4. วันเกิด & อารมณ์ (Birthday)", chinese: "你几岁了？", pinyin: "nǐ jǐ suì le?", thai: "คุณอายุเท่าไหร่?", emoji: "🧒" },
           { id: 47, category: "4. วันเกิด & อารมณ์ (Birthday)", chinese: "我七岁了。", pinyin: "wǒ qī suì le", thai: "ฉันอายุเจ็ดขวบแล้ว", emoji: "7️⃣" },
-          { id: 48, category: "4. วันเกิด & อารมณ์ (Birthday)", chinese: "你今天开心吗？", pinyin: "nǐ jīn tiān kāi xīn ma?", thai: "วันนี้คุณมีความสุขไหม?", emoji: "😄" },
+          { id: 48, category: "4. วันเกิด & อารมณ์ (Birthday)", chinese: "คุณวันนี้มีความสุขไหม？", pinyin: "nǐ jīn tiān kāi xīn ma?", thai: "วันนี้คุณมีความสุขไหม?", emoji: "😄" },
           { id: 49, category: "4. วันเกิด & อารมณ์ (Birthday)", chinese: "我今天很开心。", pinyin: "wǒ jīn tiān hěn kāi xīn", thai: "วันนี้ฉันมีความสุขมาก", emoji: "🥰" }
         ];
 
@@ -1006,7 +1025,7 @@
 
           setTimeout(() => {
             toasts.value = toasts.value.filter(t => t.id !== id);
-          }, 3500);
+          }, 4000);
         };
 
         // Core View tab switching state
@@ -1031,6 +1050,7 @@
         const playCards = ref([]); // Cards currently drawn on the active classroom board
         const speechRate = ref(0.8);
         const autoPlaySpeech = ref(false);
+        const hasUnlockedAudio = ref(false); // Mobile iOS/Android interaction flag
 
         // AUTO-REPLACE ON REVEAL STATES
         const replaceOnCorrect = ref(true); // Automatically replace card when successfully answered in quiz
@@ -1132,24 +1152,77 @@
           return 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4';
         });
 
-        // Web Speech API execution wrapper
+        // --- ROBUST WEB SPEECH TTS ENGINE (MOBILE-FRIENDLY & GC PROOF) ---
         const speakChinese = (text) => {
           if (!text) return;
+          
           if ('speechSynthesis' in window) {
-            window.speechSynthesis.cancel(); // Stop prior speeches
-            const cleanText = text.replace(/？|。|，/g, '').trim();
-            const utterance = new SpeechSynthesisUtterance(cleanText);
-            utterance.lang = 'zh-CN';
-            utterance.rate = speechRate.value;
-            
-            // Query for native sound matching
-            const voices = window.speechSynthesis.getVoices();
-            const voice = voices.find(v => v.lang.includes('ZH') || v.lang.includes('zh'));
-            if (voice) {
-              utterance.voice = voice;
+            try {
+              // 1. Force SpeechSynthesis stop on Safari iOS/iPadOS safely
+              window.speechSynthesis.cancel();
+
+              // Clean punctuations to keep pronunciation smooth
+              const cleanText = text.replace(/？|。|，/g, '').trim();
+
+              // 2. Delayed execution solves asynchronous queue freeze on Mobile Web Audio
+              setTimeout(() => {
+                const utterance = new SpeechSynthesisUtterance(cleanText);
+                utterance.lang = 'zh-CN';
+                utterance.rate = speechRate.value;
+
+                // 3. RETIRE REFERENCE GLOBALLY to bypass iOS/Chrome Garbage Collection mute bug
+                activeSpeechUtterance = utterance;
+
+                // 4. Safe Voice mapping
+                const voices = window.speechSynthesis.getVoices();
+                let cnVoice = voices.find(v => v.lang === 'zh-CN' || v.lang === 'zh_CN' || v.lang.toLowerCase().includes('zh-hans'));
+                
+                if (!cnVoice) {
+                  cnVoice = voices.find(v => v.lang.toLowerCase().includes('zh'));
+                }
+                
+                if (cnVoice) {
+                  utterance.voice = cnVoice;
+                }
+
+                utterance.onerror = (e) => {
+                  console.error("SpeechSynthesisUtterance error:", e);
+                };
+
+                // 5. Speak out loud!
+                window.speechSynthesis.speak(utterance);
+              }, 40);
+
+            } catch (err) {
+              console.error("TTS Speech Engine Error:", err);
+              triggerToast('⚠️ ไม่สามารถเล่นเสียงพูดบนแท็บเล็ตนี้ได้ กรุณาปิดโหมดปิดเสียงเครื่อง', 'error');
             }
-            window.speechSynthesis.speak(utterance);
+          } else {
+            triggerToast('❌ แท็บเล็ตนี้ไม่รองรับระบบอ่านออกเสียงอัตโนมัติ (SpeechSynthesis)', 'error');
           }
+        };
+
+        // Touch Unlocking mechanism for Safari/iOS autoplay restrictions
+        const handleFirstInteraction = () => {
+          if (!hasUnlockedAudio.value) {
+            if ('speechSynthesis' in window) {
+              // Play a silent short sound to "unlock" audio session on mobile Safari/Chrome
+              const silentUtterance = new SpeechSynthesisUtterance('');
+              silentUtterance.lang = 'zh-CN';
+              silentUtterance.volume = 0;
+              window.speechSynthesis.speak(silentUtterance);
+              hasUnlockedAudio.value = true;
+              console.log("Audio speech synthesis unlocked for mobile gesture.");
+            }
+          }
+        };
+
+        // Forced Troubleshooting Speech button
+        const testAndForceUnlockVoice = () => {
+          hasUnlockedAudio.value = true;
+          // Speak test phrase
+          speakChinese("你好");
+          triggerToast('🔊 ส่งสัญญาณเสียงภาษาจีน "หนีห่าว" ไปยังลำโพงแล้ว! หากเงียบ โปรดปิดโหมดสั่น/ปุ่มปิดเสียงสั่นบนข้าง iPad ของคุณครูครับ', 'warning');
         };
 
         // Replace a specific card on the active board with a fresh unused word
@@ -1592,6 +1665,16 @@
             lucide.createIcons();
           });
           fillBoardWithShuffle(); // Fill Classroom board with elements
+          
+          // Pre-fetch voices on iOS/Safari as soon as available
+          if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+            window.speechSynthesis.getVoices();
+            if (window.speechSynthesis.onvoiceschanged !== undefined) {
+              window.speechSynthesis.onvoiceschanged = () => {
+                window.speechSynthesis.getVoices();
+              };
+            }
+          }
         });
 
         // Re-apply Lucide Icons when active tab is adjusted
@@ -1651,6 +1734,8 @@
           triggerListeningQuiz,
           stopQuiz,
           isBoardFullyCleared,
+          handleFirstInteraction,
+          testAndForceUnlockVoice,
 
           // Learning Scoreboard States & Computeds
           scoreCorrect,
