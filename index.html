@@ -70,22 +70,28 @@
         margin: 0 !important;
         padding: 0 !important;
         width: 210mm;
-        height: 297mm;
       }
       .no-print {
         display: none !important;
       }
       .print-page {
         width: 210mm;
-        height: 297mm;
-        padding: 13.5mm 10mm !important;
-        margin: 0 !important;
-        page-break-after: always;
         box-sizing: border-box;
         background: white !important;
         box-shadow: none !important;
         overflow: hidden;
         display: block !important;
+      }
+      /* Managed size and height for cards strictly */
+      .print-page-cards {
+        height: 297mm;
+        padding: 13.5mm 10mm !important;
+        page-break-after: always;
+      }
+      /* Natural overflow let loose for table portrait list printing */
+      .print-page-table {
+        padding: 15mm 15mm !important;
+        page-break-after: auto;
       }
       .a4-grid {
         display: grid !important;
@@ -136,10 +142,10 @@
         </div>
         
         <!-- Tab Navigation (Separating Play from Print Settings) -->
-        <div class="flex bg-white/10 p-1 rounded-xl backdrop-blur-md">
+        <div class="flex bg-white/10 p-1 rounded-xl backdrop-blur-md font-title">
           <button 
             @click="switchView('play')" 
-            :class="activeView === 'play' ? 'bg-white text-rose-600 shadow-sm' : 'text-white hover:bg-white/10'"
+            :class="activeView === 'play' ? 'bg-white text-rose-600 shadow-sm font-bold' : 'text-white hover:bg-white/10'"
             class="px-4 py-2 rounded-lg text-xs font-bold transition flex items-center gap-2"
           >
             <i data-lucide="gamepad-2" class="w-4 h-4"></i>
@@ -147,7 +153,7 @@
           </button>
           <button 
             @click="switchView('print')" 
-            :class="activeView === 'print' ? 'bg-white text-rose-600 shadow-sm' : 'text-white hover:bg-white/10'"
+            :class="activeView === 'print' ? 'bg-white text-rose-600 shadow-sm font-bold' : 'text-white hover:bg-white/10'"
             class="px-4 py-2 rounded-lg text-xs font-bold transition flex items-center gap-2"
           >
             <i data-lucide="printer" class="w-4 h-4"></i>
@@ -155,7 +161,7 @@
           </button>
           <button 
             @click="switchView('manager')" 
-            :class="activeView === 'manager' ? 'bg-white text-rose-600 shadow-sm' : 'text-white hover:bg-white/10'"
+            :class="activeView === 'manager' ? 'bg-white text-rose-600 shadow-sm font-bold' : 'text-white hover:bg-white/10'"
             class="px-4 py-2 rounded-lg text-xs font-bold transition flex items-center gap-2"
           >
             <i data-lucide="database" class="w-4 h-4"></i>
@@ -169,63 +175,24 @@
     <main class="no-print flex-grow max-w-7xl w-full mx-auto p-4 lg:p-6">
       
       <!-- SCREEN 1: DEDICATED CLASSROOM PLAY INTERACTIVE VIEW -->
-      <section v-if="activeView === 'play'" class="space-y-6">
+      <section v-if="activeView === 'play'" class="space-y-4">
         
-        <!-- Game & Board Setup Bar -->
-        <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 flex flex-col xl:flex-row justify-between items-stretch xl:items-center gap-4">
-          <div class="flex flex-wrap items-center gap-3">
-            <div>
-              <label class="block text-2xs font-semibold text-slate-400 uppercase tracking-wider mb-1">หมวดหมู่คำศัพท์</label>
-              <select v-model="playCategory" class="text-xs border border-slate-200 rounded-xl px-3 py-2 bg-slate-50 font-semibold focus:outline-none focus:ring-2 focus:ring-rose-400">
-                <option value="All">ดึงทุกคำในคลัง ({{ cards.length }} คำ)</option>
-                <option v-for="cat in categories" :key="cat" :value="cat">{{ cat }}</option>
-              </select>
-            </div>
-            
-            <div>
-              <label class="block text-2xs font-semibold text-slate-400 uppercase tracking-wider mb-1">แสดงผลพร้อมกัน</label>
-              <div class="flex bg-slate-100 p-0.5 rounded-xl border">
-                <button v-for="size in [1, 2, 4, 6, 8, 'all']" :key="size"
-                  @click="changePlayGridSize(size)"
-                  :class="playGridSize === size ? 'bg-white text-rose-600 shadow font-bold' : 'text-slate-500 hover:text-slate-800'"
-                  class="px-2.5 py-1.5 rounded-lg text-xs font-bold transition"
-                >
-                  {{ size === 'all' ? 'ทั้งหมด' : size + ' ใบ' }}
-                </button>
-              </div>
-            </div>
-
-            <!-- Auto-replacement Settings Inside Play Mode -->
-            <div class="flex flex-col justify-end">
-              <label class="block text-2xs font-semibold text-slate-400 uppercase tracking-wider mb-1">ระบบสุ่มเติมคำใหม่ (Replacement)</label>
-              <div class="flex items-center gap-3 bg-slate-50 border px-3 py-1.5 rounded-xl text-2xs font-semibold">
-                <label class="flex items-center gap-1.5 cursor-pointer text-slate-600" title="เมื่อคลิกทายคำเสียงถูก บัตรใบนี้จะถูกสลับเป็นคำใหม่ที่ไม่ซ้ำเดิม หากคำศัพท์ในคลังหมดบัตรจะหายไปทันที">
-                  <input type="checkbox" v-model="replaceOnCorrect" class="rounded text-rose-500 focus:ring-rose-400">
-                  สลับคำใหม่เมื่อทายถูก
-                </label>
-                <div class="border-l h-4 border-slate-300"></div>
-                <label class="flex items-center gap-1.5 cursor-pointer text-slate-600" title="เมื่อกดคลิกเฉลยศัพท์ธรรมดาเพื่อดูความหมาย บัตรใบนี้จะสุ่มคำแปลกใหม่มาสวมช่องนี้แทน">
-                  <input type="checkbox" v-model="replaceOnFlip" class="rounded text-rose-500 focus:ring-rose-400">
-                  สลับคำใหม่เมื่อพลิกการ์ด
-                </label>
-              </div>
-            </div>
-
-            <!-- Controller Actions -->
-            <div class="flex items-end gap-2 mt-4 xl:mt-0">
-              <button @click="fillBoardWithShuffle" class="bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white font-bold px-3 py-2 rounded-xl text-xs flex items-center gap-1.5 shadow transition-all transform active:scale-95" title="สุ่มสลับการ์ดชุดปัจจุบันใหม่ทั้งหมด">
-                <i data-lucide="dices" class="w-4 h-4"></i>
-                🎲 สลับคละใหม่
-              </button>
-              <button @click="resetBoardToStartingState" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3 py-2 rounded-xl text-xs flex items-center gap-1.5 shadow-sm transition-all transform active:scale-95 border" title="ล้างคะแนนและเริ่มนับตั้งแต่คำแรกใหม่">
-                <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
-                🔄 เริ่มรอบใหม่
-              </button>
-            </div>
+        <!-- ALWAYS VISIBLE ACTIVITY ACTION TOOLBAR (never collapses) -->
+        <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 flex flex-col md:flex-row justify-between items-stretch md:items-center gap-4 animate-fade-in font-title">
+          <!-- Shuffling & Resetting Buttons -->
+          <div class="flex flex-wrap items-center gap-2.5">
+            <button @click="fillBoardWithShuffle" class="bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white font-bold px-5 py-3 rounded-2xl text-xs flex items-center gap-1.5 shadow transition-all transform active:scale-95" title="สุ่มสลับการ์ดชุดปัจจุบันใหม่ทั้งหมด">
+              <i data-lucide="dices" class="w-4 h-4"></i>
+              🎲 สลับคละใหม่
+            </button>
+            <button @click="resetBoardToStartingState" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-5 py-3 rounded-2xl text-xs flex items-center gap-1.5 shadow-sm transition-all transform active:scale-95 border" title="ล้างคะแนนและเริ่มนับตั้งแต่คำแรกใหม่">
+              <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+              🔄 เริ่มรอบใหม่
+            </button>
           </div>
 
-          <!-- TTS & Quiz Control Station -->
-          <div class="flex flex-col xl:flex-row items-stretch xl:items-center gap-3 bg-rose-50/50 p-3 rounded-2xl border border-rose-100/60 lg:max-w-md w-full">
+          <!-- Speed & Speak Controls -->
+          <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 bg-rose-50/50 p-3.5 rounded-2xl border border-rose-100/60 md:max-w-md w-full justify-between">
             <div class="space-y-1 flex-grow">
               <span class="text-xs font-bold text-rose-700 flex items-center gap-1">
                 <i data-lucide="speech" class="w-4 h-4 text-rose-500"></i>
@@ -244,67 +211,134 @@
               </div>
             </div>
 
-            <!-- Quiz game interactive button -->
-            <div class="flex flex-col items-stretch xl:items-end gap-1 justify-center">
+            <!-- Quiz triggering action -->
+            <div class="flex flex-col items-stretch sm:items-end gap-1 justify-center shrink-0">
               <button 
                 @click="triggerListeningQuiz" 
-                class="bg-rose-500 hover:bg-rose-600 text-white font-bold px-4 py-2 rounded-xl text-xs flex items-center justify-center gap-1.5 shadow transition-all transform active:scale-95 shrink-0"
+                class="bg-rose-500 hover:bg-rose-600 text-white font-bold px-4 py-2.5 rounded-xl text-xs flex items-center justify-center gap-1.5 shadow transition-all transform active:scale-95 shrink-0"
               >
                 <i data-lucide="volume-2" class="w-4 h-4 animate-bounce"></i>
                 🔊 สุ่มคำถามเสียงจีน
               </button>
-              <span class="text-[9px] text-rose-600 text-center xl:text-right" v-if="quizTargetId">
+              <span class="text-[9px] text-rose-600 text-center sm:text-right" v-if="quizTargetId">
                 (จับคู่เสียง แล้วจิ้มใบที่ถูก!)
               </span>
             </div>
           </div>
         </div>
 
-        <!-- MOBILE / TABLET AUDIO TROUBLESHOOTER BANNER -->
-        <div class="bg-amber-50 border border-amber-200 p-4 rounded-3xl flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
-          <div class="flex items-start gap-2.5">
-            <i data-lucide="volume-2" class="w-5 h-5 text-amber-600 mt-0.5 shrink-0 animate-bounce"></i>
-            <div>
-              <p class="text-xs font-bold text-amber-800 flex items-center gap-1.5">
-                🔊 แก้ไขปัญหาไม่มีเสียงบนอุปกรณ์พกพา & iPad แท็บเล็ต
-              </p>
-              <p class="text-[11px] text-slate-600 mt-1 leading-relaxed">
-                • <strong>สวิตช์โหมดเสียงพูด:</strong> หากแท็บเล็ตของคุณครูไม่มีเสียง หรือเปิดในแอป LINE/Facebook แนะนำให้สลับด้านขวาเป็น <strong>"เสียงเมฆออนไลน์ (Online TTS)"</strong> เพื่อดึงสำเนียงจีนแท้ 100% โดยไม่บล็อกเบราว์เซอร์<br>
-                • <strong>สำหรับ iOS / iPad:</strong> ตรวจสอบว่าได้<strong>ปิดโหมดเงียบ (ปุ่มปิดเสียงสั่นสีแดงด้านข้างตัวเครื่อง)</strong> และเร่งเสียงลำโพงขึ้นแล้ว เนื่องจาก iOS จะระงับเสียงพูดสังเคราะห์ทันทีหากเครื่องอยู่ในโหมดสั่น
-              </p>
+        <!-- COLLAPSIBLE ACTIVITY CONTROL PANEL -->
+        <div 
+          @click="toggleControlsPanel"
+          class="bg-white px-5 py-3 rounded-2xl shadow-sm border border-slate-100 flex justify-between items-center cursor-pointer hover:bg-slate-50 transition font-title"
+        >
+          <div class="flex items-center gap-2.5">
+            <span class="bg-amber-100 text-amber-600 p-1.5 rounded-lg flex items-center justify-center">
+              <i data-lucide="settings" class="w-4 h-4"></i>
+            </span>
+            <div class="text-left">
+              <h3 class="text-sm font-bold text-slate-800">แผงควบคุมและตั้งค่ากิจกรรมห้องเรียน</h3>
+              <p class="text-[10px] text-slate-400">คลิกที่นี่เพื่อ ย่อ-ขยาย แถบเครื่องมือตั้งค่าหมวดหมู่คำศัพท์ ตัวเลือกแสดงการ์ด และระบบเสียงพกพา</p>
             </div>
           </div>
-          
-          <div class="flex flex-wrap items-center gap-2 w-full lg:w-auto shrink-0">
-            <!-- Selector to force online TTS -->
-            <div class="flex bg-amber-100 p-1 rounded-xl border border-amber-200">
-              <button 
-                @click="speechEngineMode = 'auto'" 
-                :class="speechEngineMode === 'auto' ? 'bg-amber-500 text-white shadow-sm font-bold' : 'text-amber-800 hover:bg-amber-200'"
-                class="px-2.5 py-1.5 rounded-lg text-2xs font-bold transition"
-              >
-                อัตโนมัติ (Auto)
-              </button>
-              <button 
-                @click="speechEngineMode = 'online'" 
-                :class="speechEngineMode === 'online' ? 'bg-amber-500 text-white shadow-sm font-bold' : 'text-amber-800 hover:bg-amber-200'"
-                class="px-2.5 py-1.5 rounded-lg text-2xs font-bold transition flex items-center gap-1"
-                title="บังคับดึงเสียงพูดสังเคราะห์จากคลาวด์ Youdao เสียงคมชัดแน่นอนในแอป LINE"
-              >
-                <i data-lucide="globe" class="w-3 h-3"></i>
-                เสียงออนไลน์ (Online TTS)
+          <button class="bg-slate-100 text-slate-600 hover:bg-slate-200 px-3 py-1.5 rounded-xl text-2xs font-bold flex items-center gap-1.5 transition">
+            <span>{{ isControlsExpanded ? 'ซ่อนแผงตั้งค่า' : 'แสดงแผงตั้งค่า' }}</span>
+            <i :data-lucide="isControlsExpanded ? 'chevron-up' : 'chevron-down'" class="w-4 h-4"></i>
+          </button>
+        </div>
+
+        <!-- Collapsible Controls Container -->
+        <div v-show="isControlsExpanded" class="space-y-4 transition-all duration-300 animate-fade-in font-title">
+          <!-- Selector Fields Bar -->
+          <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 flex flex-col xl:flex-row justify-between items-stretch xl:items-center gap-4">
+            <div class="flex flex-wrap items-center gap-4">
+              <!-- Category dropdown selection -->
+              <div>
+                <label class="block text-2xs font-semibold text-slate-400 uppercase tracking-wider mb-1">หมวดหมู่คำศัพท์</label>
+                <select v-model="playCategory" class="text-xs border border-slate-200 rounded-xl px-3 py-2 bg-slate-50 font-semibold focus:outline-none focus:ring-2 focus:ring-rose-400">
+                  <option value="All">ดึงทุกคำในคลัง ({{ cards.length }} คำ)</option>
+                  <option v-for="cat in categories" :key="cat" :value="cat">{{ cat }}</option>
+                </select>
+              </div>
+              
+              <!-- Simultaneous Cards showing control (Size) -->
+              <div>
+                <label class="block text-2xs font-semibold text-slate-400 uppercase tracking-wider mb-1">แสดงผลพร้อมกัน</label>
+                <div class="flex bg-slate-100 p-0.5 rounded-xl border">
+                  <button v-for="size in [1, 2, 4, 6, 8, 'all']" :key="size"
+                    @click="changePlayGridSize(size)"
+                    :class="playGridSize === size ? 'bg-white text-rose-600 shadow font-bold' : 'text-slate-500 hover:text-slate-800'"
+                    class="px-2.5 py-1.5 rounded-lg text-xs font-bold transition"
+                  >
+                    {{ size === 'all' ? 'ทั้งหมด' : size + ' ใบ' }}
+                  </button>
+                </div>
+              </div>
+
+              <!-- Auto-replacement Settings Inside Play Mode -->
+              <div class="flex flex-col justify-end">
+                <label class="block text-2xs font-semibold text-slate-400 uppercase tracking-wider mb-1">ระบบสุ่มเติมคำใหม่ (Replacement)</label>
+                <div class="flex items-center gap-3 bg-slate-50 border px-3 py-1.5 rounded-xl text-2xs font-semibold">
+                  <label class="flex items-center gap-1.5 cursor-pointer text-slate-600" title="เมื่อคลิกทายคำเสียงถูก บัตรใบนี้จะถูกสลับเป็นคำใหม่ที่ไม่ซ้ำเดิม หากคำศัพท์ในคลังหมดบัตรจะหายไปทันที">
+                    <input type="checkbox" v-model="replaceOnCorrect" class="rounded text-rose-500 focus:ring-rose-400">
+                    สลับคำใหม่เมื่อทายถูก
+                  </label>
+                  <div class="border-l h-4 border-slate-300"></div>
+                  <label class="flex items-center gap-1.5 cursor-pointer text-slate-600" title="เมื่อกดคลิกเฉลยศัพท์ธรรมดาเพื่อดูความหมาย บัตรใบนี้จะสุ่มคำแปลกใหม่มาสวมช่องนี้แทน">
+                    <input type="checkbox" v-model="replaceOnFlip" class="rounded text-rose-500 focus:ring-rose-400">
+                    สลับคำใหม่เมื่อพลิกการ์ด
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- AUDIO TROUBLESHOOTER BANNER (inside collapsible block) -->
+          <div class="bg-amber-50 border border-amber-200 p-4 rounded-3xl flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+            <div class="flex items-start gap-2.5">
+              <i data-lucide="volume-2" class="w-5 h-5 text-amber-600 mt-0.5 shrink-0 animate-bounce"></i>
+              <div>
+                <p class="text-xs font-bold text-amber-800 flex items-center gap-1.5">
+                  🔊 แก้ไขปัญหาไม่มีเสียงบนอุปกรณ์พกพา & iPad แท็บเล็ต
+                </p>
+                <p class="text-[11px] text-slate-600 mt-1 leading-relaxed">
+                  • <strong>สวิตช์โหมดเสียงพูด:</strong> หากแท็บเล็ตของคุณครูไม่มีเสียง หรือเปิดในแอป LINE/Facebook แนะนำให้สลับด้านขวาเป็น <strong>"เสียงเมฆออนไลน์ (Online TTS)"</strong> เพื่อดึงสำเนียงจีนแท้ 100% โดยไม่บล็อกเบราว์เซอร์<br>
+                  • <strong>สำหรับ iOS / iPad:</strong> ตรวจสอบว่าได้<strong>ปิดโหมดเงียบ (ปุ่มปิดเสียงสั่นสีแดงด้านข้างตัวเครื่อง)</strong> และเร่งเสียงลำโพงขึ้นแล้ว เนื่องจาก iOS จะระงับเสียงพูดสังเคราะห์ทันทีหากเครื่องอยู่ในโหมดสั่น
+                </p>
+              </div>
+            </div>
+            
+            <div class="flex flex-wrap items-center gap-2 w-full lg:w-auto shrink-0 font-title">
+              <!-- Selector to force online TTS -->
+              <div class="flex bg-amber-100 p-1 rounded-xl border border-amber-200">
+                <button 
+                  @click="speechEngineMode = 'auto'" 
+                  :class="speechEngineMode === 'auto' ? 'bg-amber-500 text-white shadow-sm font-bold' : 'text-amber-800 hover:bg-amber-200'"
+                  class="px-2.5 py-1.5 rounded-lg text-2xs font-bold transition"
+                >
+                  อัตโนมัติ (Auto)
+                </button>
+                <button 
+                  @click="speechEngineMode = 'online'" 
+                  :class="speechEngineMode === 'online' ? 'bg-amber-500 text-white shadow-sm font-bold' : 'text-amber-800 hover:bg-amber-200'"
+                  class="px-2.5 py-1.5 rounded-lg text-2xs font-bold transition flex items-center gap-1"
+                  title="บังคับดึงเสียงพูดสังเคราะห์จากคลาวด์ Youdao เสียงคมชัดแน่นอนในแอป LINE"
+                >
+                  <i data-lucide="globe" class="w-3 h-3"></i>
+                  เสียงออนไลน์ (Online TTS)
+                </button>
+              </div>
+
+              <button @click="testAndForceUnlockVoice" class="bg-slate-900 hover:bg-slate-800 text-white font-bold px-3.5 py-2 rounded-xl text-2xs flex items-center justify-center gap-1 shadow transform active:scale-95 transition-all">
+                <i data-lucide="play-circle" class="w-3.5 h-3.5"></i>
+                ทดสอบเสียง (Test "你好")
               </button>
             </div>
-
-            <button @click="testAndForceUnlockVoice" class="bg-slate-900 hover:bg-slate-800 text-white font-bold px-3.5 py-2 rounded-xl text-2xs flex items-center justify-center gap-1 shadow transform active:scale-95 transition-all">
-              <i data-lucide="play-circle" class="w-3.5 h-3.5"></i>
-              ทดสอบเสียง (Test "你好")
-            </button>
           </div>
         </div>
 
-        <!-- LEARNING SCOREBOARD AND STUDY PROGRESS WIDGET -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 bg-white p-5 rounded-3xl shadow-sm border border-slate-100">
+        <!-- RENDER PROGRESS SCOREBOARD (Vanish correct/wrong counts, only 2 elegant layout columns remain) -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-white p-5 rounded-3xl shadow-sm border border-slate-100 animate-fade-in font-title">
           
           <!-- Column 1: Total Words in Pool -->
           <div class="flex items-center gap-3 bg-blue-50/60 p-4 rounded-2xl border border-blue-100">
@@ -318,7 +352,7 @@
           </div>
 
           <!-- Column 2: Now on word X of Y -->
-          <div class="flex items-center gap-3 bg-indigo-50/60 p-4 rounded-2xl border border-indigo-100">
+          <div class="flex items-center gap-3 bg-indigo-50/60 p-4 rounded-2xl border border-indigo-100 font-title">
             <div class="bg-indigo-500 text-white p-2.5 rounded-xl">
               <i data-lucide="check-square" class="w-5 h-5"></i>
             </div>
@@ -329,28 +363,6 @@
               <div class="w-full bg-slate-200 h-2 rounded-full mt-1.5 overflow-hidden">
                 <div class="bg-indigo-600 h-full rounded-full transition-all duration-500" :style="{ width: progressPercentage + '%' }"></div>
               </div>
-            </div>
-          </div>
-
-          <!-- Column 3: Answered Correctly -->
-          <div class="flex items-center gap-3 bg-emerald-50/60 p-4 rounded-2xl border border-emerald-100">
-            <div class="bg-emerald-500 text-white p-2.5 rounded-xl">
-              <i data-lucide="smile" class="w-5 h-5"></i>
-            </div>
-            <div>
-              <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">ตอบถูกสะสม</div>
-              <div class="text-xl font-extrabold text-emerald-700 font-title">{{ scoreCorrect }} ครั้ง</div>
-            </div>
-          </div>
-
-          <!-- Column 4: Answered Incorrectly -->
-          <div class="flex items-center gap-3 bg-rose-50/60 p-4 rounded-2xl border border-rose-100">
-            <div class="bg-rose-500 text-white p-2.5 rounded-xl">
-              <i data-lucide="frown" class="w-5 h-5"></i>
-            </div>
-            <div>
-              <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">ทายผิดพลาด</div>
-              <div class="text-xl font-extrabold text-rose-700 font-title">{{ scoreWrong }} ครั้ง</div>
             </div>
           </div>
 
@@ -372,7 +384,7 @@
           </div>
           <h2 class="font-title text-2xl font-bold">🏆 ยอดเยี่ยมมากครับเด็กๆ!</h2>
           <p class="text-sm font-semibold">เล่นคำศัพท์ในรอบนี้ผ่านครบถ้วนกระดานแล้ว!</p>
-          <button @click="resetBoardToStartingState" class="bg-white text-emerald-700 font-extrabold px-6 py-3 rounded-2xl hover:bg-slate-100 transition shadow transform active:scale-95 text-xs">
+          <button @click="resetBoardToStartingState" class="bg-white text-emerald-700 font-extrabold px-6 py-3 rounded-2xl hover:bg-slate-100 transition shadow transform active:scale-95 text-xs font-title">
             🔄 เริ่มเล่นรอบใหม่อีกครั้ง
           </button>
         </div>
@@ -403,11 +415,11 @@
                     <span class="bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full text-[10px] font-bold">{{ card.category }}</span>
                     
                     <!-- Sound Icon - click strictly speaks and prevents card flipped -->
-                    <!-- ปรับปรุงให้ดักจับทั้ง click และ touchstart เพื่อป้องกัน LINE App WebView บล็อกเสียง -->
+                    <!-- ดักจับทั้ง click และ touchstart เพื่อแก้ปัญหาเสียงบนแอป LINE อุดตัน -->
                     <button 
                       @click.stop="speakAndMarkQuiz(card, $event)" 
                       @touchstart.stop="speakAndMarkQuiz(card, $event)"
-                      class="bg-gradient-to-r from-orange-400 to-amber-500 hover:from-orange-500 hover:to-amber-600 text-white rounded-xl p-2 shadow-sm transition transform active:scale-90 flex items-center gap-1"
+                      class="bg-gradient-to-r from-orange-400 to-amber-500 hover:from-orange-500 hover:to-amber-600 text-white rounded-xl p-2 shadow-sm transition transform active:scale-90 flex items-center gap-1 font-title"
                       title="กดเพื่อออกเสียงตัวนี้"
                     >
                       <i data-lucide="volume-2" class="w-4 h-4"></i>
@@ -434,7 +446,7 @@
                 </div>
 
                 <!-- Back Side (Thai Translation) -->
-                <div class="flip-card-back absolute inset-0 bg-slate-900 border-4 border-rose-400 text-white rounded-3xl p-5 flex flex-col justify-between items-center shadow-md">
+                <div class="flip-card-back absolute inset-0 bg-slate-900 border-4 border-rose-400 text-white rounded-3xl p-5 flex flex-col justify-between items-center shadow-md font-title">
                   <div class="w-full flex justify-between items-center text-xs text-rose-300 font-bold">
                     <span>คำแปลภาษาไทย</span>
                     <i data-lucide="refresh-cw" class="w-4 h-4 opacity-75"></i>
@@ -479,12 +491,12 @@
       </section>
 
       <!-- SCREEN 2: DESIGN & A4 PRINT PREVIEW STUDIO -->
-      <section v-if="activeView === 'print'" class="grid grid-cols-1 xl:grid-cols-12 gap-6">
+      <section v-if="activeView === 'print'" class="grid grid-cols-1 xl:grid-cols-12 gap-6 animate-fade-in font-title">
         
         <!-- Print Configuration Panel (Left side) -->
         <div class="xl:col-span-4 space-y-6">
           <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
-            <h2 class="font-title text-lg font-semibold text-slate-800 border-b pb-3 mb-4 flex items-center gap-2">
+            <h2 class="text-lg font-semibold text-slate-800 border-b pb-3 mb-4 flex items-center gap-2">
               <i data-lucide="printer" class="text-rose-500 w-5 h-5"></i>
               การจัดรูปเล่มพิมพ์กระดาษ A4
             </h2>
@@ -516,20 +528,29 @@
                       <p class="text-[10px] text-slate-500 mt-0.5">พิมพ์เฉพาะด้านภาษาจีนอย่างเดียว เพื่อเล่นเกมจับคู่ หรือกิจกรรมแปะคำใบ้ในห้องเรียน</p>
                     </div>
                   </button>
+
+                  <!-- NEW: Printable portrait A4 table list -->
+                  <button @click="printMode = 'table-list'" :class="printMode === 'table-list' ? 'border-rose-500 bg-rose-50 text-rose-700 ring-2 ring-rose-200' : 'border-slate-200 hover:bg-slate-50 text-slate-700'" class="flex items-start gap-3 p-3 border-2 rounded-xl text-left transition" title="สับเปลี่ยนเป็นตารางสรุปคำศัพท์เพื่อเซฟ PDF หรือสั่งพิมพ์แนวตั้ง">
+                    <div class="mt-0.5 bg-purple-500 text-white rounded-full p-1"><i data-lucide="table" class="w-4 h-4"></i></div>
+                    <div>
+                      <div class="font-semibold text-xs">ตารางสรุปคำศัพท์ A4 แนวตั้ง (Portrait Table)</div>
+                      <p class="text-[10px] text-slate-500 mt-0.5">สลับพรีวิวเป็นตารางแบ่งคอลัมน์ อักษรจีน พินอิน คำแปลไทย ปริ้นท์แนวตั้งสมบูรณ์แบบ</p>
+                    </div>
+                  </button>
                 </div>
               </div>
 
               <!-- Filter which items to print -->
               <div>
-                <label class="block text-xs font-semibold text-slate-500 mb-2">เลือกเนื้อหาที่จะนำไปจัดพรีวิวสำหรับพิมพ์</label>
-                <select v-model="printCategory" class="w-full text-xs border border-slate-200 rounded-lg p-2 bg-slate-50 focus:ring-2 focus:ring-rose-400 focus:outline-none">
+                <label class="block text-xs font-semibold text-slate-500 mb-2">เลือกเนื้อหาคำศัพท์ที่จะพิมพ์</label>
+                <select v-model="printCategory" class="w-full text-xs border border-slate-200 rounded-lg p-2.5 bg-slate-50 focus:ring-2 focus:ring-rose-400 focus:outline-none">
                   <option value="All">ดึงทุกกลุ่มคำพิมพ์ทั้งหมด ({{ cards.length }} คำ)</option>
                   <option v-for="cat in categories" :key="cat" :value="cat">{{ cat }}</option>
                 </select>
               </div>
 
-              <!-- Boundary Lines -->
-              <div>
+              <!-- Boundary Lines (Show only for non-table format) -->
+              <div v-if="printMode !== 'table-list'">
                 <label class="block text-xs font-semibold text-slate-500 mb-1.5">รูปแบบเส้นประนำสายตาสำหรับตัด</label>
                 <div class="grid grid-cols-3 gap-1.5">
                   <button @click="borderStyle = 'dotted'" :class="borderStyle === 'dotted' ? 'bg-slate-800 text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'" class="py-1.5 rounded text-2xs font-semibold transition">... เส้นประ</button>
@@ -554,10 +575,18 @@
               </div>
 
               <!-- Large Print CTA -->
-              <button @click="printFlashcards" class="w-full bg-yellow-400 hover:bg-yellow-500 text-slate-900 font-bold py-3 px-4 rounded-xl text-xs flex items-center justify-center gap-2 shadow transform active:scale-95 transition-all">
-                <i data-lucide="printer" class="w-4 h-4"></i>
-                พิมพ์การ์ดออกทางเครื่องพิมพ์ (A4 Portrait)
-              </button>
+              <div class="space-y-2.5 pt-2">
+                <button @click="printFlashcards" class="w-full bg-yellow-400 hover:bg-yellow-500 text-slate-900 font-bold py-3 px-4 rounded-xl text-xs flex items-center justify-center gap-2 shadow transform active:scale-95 transition-all">
+                  <i data-lucide="printer" class="w-4 h-4"></i>
+                  สั่งพิมพ์ / เซฟเป็น PDF (A4)
+                </button>
+                
+                <!-- NEW: EXCEL EXPORT BUTTON IN PRINT STUDIO -->
+                <button @click="exportToExcel" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-xl text-xs flex items-center justify-center gap-2 shadow transform active:scale-95 transition-all">
+                  <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
+                  ส่งออกไฟล์ Excel (.csv ภาษาไทย/จีน)
+                </button>
+              </div>
               
               <button @click="openHelpModal" class="w-full text-slate-500 hover:text-slate-800 text-center font-bold text-2xs underline flex items-center justify-center gap-1">
                 <i data-lucide="help-circle" class="w-3 h-3"></i>
@@ -574,105 +603,141 @@
           </div>
 
           <div class="overflow-x-auto w-full flex flex-col items-center bg-slate-200/50 p-4 rounded-3xl border border-dashed border-slate-300">
-            <!-- Printable Pages Loops -->
-            <div v-for="(page, pageIdx) in printablePages" :key="pageIdx" class="preview-page mb-6 shadow-xl relative shrink-0">
-              <div class="absolute top-1 left-2 text-[8px] text-slate-400">
-                กระดาษ A4 แผ่นที่ {{ pageIdx + 1 }} ({{ page.type === 'back' ? 'หน้าคู่: คำแปลสะท้อนกระจก' : 'หน้าคี่: ศัพท์พินอิน' }})
+            
+            <!-- NEW: A4 portrait summary table list preview on screen -->
+            <template v-if="printMode === 'table-list'">
+              <div class="bg-white p-8 rounded-2xl shadow-inner border border-slate-200 w-[210mm] min-h-[297mm] overflow-hidden text-slate-900 text-left">
+                <div class="text-center mb-6 border-b-2 border-rose-500 pb-3">
+                  <h1 class="font-title text-xl font-bold">ตารางสรุปคำศัพท์ภาษาจีนระดับประถมศึกษา</h1>
+                  <p class="text-xs text-slate-500 mt-1">คลังคำศัพท์ภาษาจีนกลาง พินอิน และคำแปลภาษาไทยอย่างย่อ</p>
+                </div>
+                
+                <table class="w-full text-left text-xs border-collapse border border-slate-300">
+                  <thead>
+                    <tr class="bg-slate-100 text-slate-700 font-bold border-b border-slate-400 font-title">
+                      <th class="py-2.5 px-3 border border-slate-300 w-12 text-center">#</th>
+                      <th class="py-2.5 px-3 border border-slate-300 w-36">หมวดหมู่</th>
+                      <th class="py-2.5 px-3 border border-slate-300 font-chinese text-sm">ตัวจีน (Chinese)</th>
+                      <th class="py-2.5 px-3 border border-slate-300">พินอิน (Pinyin)</th>
+                      <th class="py-2.5 px-3 border border-slate-300">คำแปลภาษาไทย</th>
+                      <th class="py-2.5 px-3 border border-slate-300 w-16 text-center">อีโมจิ</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="(card, idx) in printFilteredCards" :key="card.id" class="border-b border-slate-200 hover:bg-slate-50">
+                      <td class="py-2 px-3 border border-slate-300 text-center font-mono text-slate-400">{{ idx + 1 }}</td>
+                      <td class="py-2 px-3 border border-slate-300 text-slate-500 font-medium text-[10px]">{{ card.category }}</td>
+                      <td class="py-2 px-3 border border-slate-300 font-chinese font-bold text-lg text-slate-800 tracking-wide">{{ card.chinese }}</td>
+                      <td class="py-2 px-3 border border-slate-300 font-semibold text-rose-600 text-sm font-title">{{ card.pinyin }}</td>
+                      <td class="py-2 px-3 border border-slate-300 font-medium text-slate-700 text-xs">{{ card.thai }}</td>
+                      <td class="py-2 px-3 border border-slate-300 text-center text-base">{{ card.emoji }}</td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
+            </template>
 
-              <div class="a4-grid bg-white">
-                <div 
-                  v-for="(card, cardIdx) in page.cards" 
-                  :key="cardIdx"
-                  class="card-size border relative flex flex-col justify-between items-center bg-white p-3 overflow-hidden text-slate-900"
-                  :style="getCardStyleBorder"
-                >
-                  <!-- Mode A: Foldable Left-Front, Right-Back layout -->
-                  <template v-if="printMode === 'foldable'">
-                    <!-- Front card design -->
-                    <div v-if="cardIdx % 2 === 0" class="w-full h-full flex flex-col justify-between items-center text-center">
-                      <div class="w-full flex justify-between items-center text-[7px] text-slate-400">
-                        <span>{{ card.category }}</span>
-                        <span>ด้านหน้า ➡️ พับ</span>
-                      </div>
-                      <div class="my-auto flex flex-col items-center justify-center">
-                        <div class="font-semibold text-rose-500 font-title tracking-wider leading-tight mb-1" :style="{ fontSize: getCardPinyinSize(card.pinyin) }">
-                          {{ card.pinyin }}
+            <!-- Card previews looped naturally -->
+            <template v-else>
+              <div v-for="(page, pageIdx) in printablePages" :key="pageIdx" class="preview-page mb-6 shadow-xl relative shrink-0">
+                <div class="absolute top-1 left-2 text-[8px] text-slate-400">
+                  กระดาษ A4 แผ่นที่ {{ pageIdx + 1 }} ({{ page.type === 'back' ? 'หน้าคู่: คำแปลสะท้อนกระจก' : 'หน้าคี่: ศัพท์พินอิน' }})
+                </div>
+
+                <div class="a4-grid bg-white">
+                  <div 
+                    v-for="(card, cardIdx) in page.cards" 
+                    :key="cardIdx"
+                    class="card-size border relative flex flex-col justify-between items-center bg-white p-3 overflow-hidden text-slate-900"
+                    :style="getCardStyleBorder"
+                  >
+                    <!-- Mode A: Foldable Left-Front, Right-Back layout -->
+                    <template v-if="printMode === 'foldable'">
+                      <!-- Front card design -->
+                      <div v-if="cardIdx % 2 === 0" class="w-full h-full flex flex-col justify-between items-center text-center">
+                        <div class="w-full flex justify-between items-center text-[7px] text-slate-400">
+                          <span>{{ card.category }}</span>
+                          <span>ด้านหน้า ➡️ พับ</span>
                         </div>
-                        <div class="font-bold font-chinese tracking-wider text-slate-800 leading-none transition-all mt-0.5" :style="{ fontSize: getCardFontSize(card.chinese) }">
-                          {{ card.chinese }}
+                        <div class="my-auto flex flex-col items-center justify-center">
+                          <div class="font-semibold text-rose-500 font-title tracking-wider leading-tight mb-1" :style="{ fontSize: getCardPinyinSize(card.pinyin) }">
+                            {{ card.pinyin }}
+                          </div>
+                          <div class="font-bold font-chinese tracking-wider text-slate-800 leading-none transition-all mt-0.5" :style="{ fontSize: getCardFontSize(card.chinese) }">
+                            {{ card.chinese }}
+                          </div>
                         </div>
-                      </div>
-                      <div class="w-full flex justify-between items-center text-[8px] font-semibold text-slate-400">
-                        <span>{{ card.emoji }}</span>
-                        <span class="text-[7px]">#{{ card.id }}</span>
-                      </div>
-                    </div>
-
-                    <!-- Back card design -->
-                    <div v-else class="w-full h-full flex flex-col justify-between items-center text-center bg-slate-50/50">
-                      <div class="w-full flex justify-between items-center text-[7px] text-slate-400">
-                        <span>⬅️ พับ | แปลไทย</span>
-                        <span>{{ card.category }}</span>
-                      </div>
-                      <div class="my-auto text-center">
-                        <div class="text-[13px] font-bold text-slate-800 tracking-wide">{{ card.thai }}</div>
-                        <div class="text-[9px] text-slate-400 mt-1 font-title">({{ card.pinyin }})</div>
-                      </div>
-                      <div class="w-full flex justify-between items-center text-[8px] font-semibold text-slate-400">
-                        <span class="text-[7px]">#{{ card.id }}</span>
-                        <span>{{ card.emoji }}</span>
-                      </div>
-                    </div>
-
-                    <!-- Dotted folder guide -->
-                    <div v-if="cardIdx % 2 === 0" class="absolute right-0 top-0 bottom-0 border-r border-dashed border-slate-300 z-10"></div>
-                  </template>
-
-                  <!-- Mode B: Separate Pages layout -->
-                  <template v-else>
-                    <div v-if="page.type === 'front' || printMode === 'single-sided'" class="w-full h-full flex flex-col justify-between items-center text-center">
-                      <div class="w-full flex justify-between items-center text-[7px] text-slate-400">
-                        <span>{{ card.category }}</span>
-                        <span>ด้านหน้า</span>
-                      </div>
-                      <div v-if="card.isEmpty" class="text-slate-200 text-xs font-semibold">การ์ดเปล่าว่าง</div>
-                      <div v-else class="my-auto flex flex-col items-center justify-center">
-                        <div class="font-semibold text-rose-500 font-title tracking-wider leading-tight mb-1" :style="{ fontSize: getCardPinyinSize(card.pinyin) }">
-                          {{ card.pinyin }}
-                        </div>
-                        <div class="font-bold font-chinese tracking-wider text-slate-800 leading-none transition-all mt-0.5" :style="{ fontSize: getCardFontSize(card.chinese) }">
-                          {{ card.chinese }}
+                        <div class="w-full flex justify-between items-center text-[8px] font-semibold text-slate-400">
+                          <span>{{ card.emoji }}</span>
+                          <span class="text-[7px]">#{{ card.id }}</span>
                         </div>
                       </div>
-                      <div class="w-full flex justify-between items-center text-[8px] font-semibold text-slate-400">
-                        <span>{{ card.emoji }}</span>
-                        <span class="text-[7px]">#{{ card.id }}</span>
-                      </div>
-                    </div>
 
-                    <div v-else class="w-full h-full flex flex-col justify-between items-center text-center bg-slate-50/50">
-                      <div class="w-full flex justify-between items-center text-[7px] text-slate-400">
-                        <span>คำแปลภาษาไทย</span>
-                        <span>{{ card.category }}</span>
+                      <!-- Back card design -->
+                      <div v-else class="w-full h-full flex flex-col justify-between items-center text-center bg-slate-50/50">
+                        <div class="w-full flex justify-between items-center text-[7px] text-slate-400">
+                          <span>⬅️ พับ | แปลไทย</span>
+                          <span>{{ card.category }}</span>
+                        </div>
+                        <div class="my-auto text-center">
+                          <div class="text-[13px] font-bold text-slate-800 tracking-wide">{{ card.thai }}</div>
+                          <div class="text-[9px] text-slate-400 mt-1 font-title">({{ card.pinyin }})</div>
+                        </div>
+                        <div class="w-full flex justify-between items-center text-[8px] font-semibold text-slate-400">
+                          <span class="text-[7px]">#{{ card.id }}</span>
+                          <span>{{ card.emoji }}</span>
+                        </div>
                       </div>
-                      <div v-if="card.isEmpty" class="text-slate-200 text-xs font-semibold">การ์ดเปล่าว่าง</div>
-                      <div v-else class="my-auto">
-                        <div class="text-[13px] font-bold text-slate-800 tracking-wide">{{ card.thai }}</div>
-                        <div class="text-[9px] text-slate-400 mt-1 font-title">({{ card.pinyin }})</div>
-                      </div>
-                      <div class="w-full flex justify-between items-center text-[8px] font-semibold text-slate-400">
-                        <span class="text-[7px]">#{{ card.id }}</span>
-                        <span>{{ card.emoji }}</span>
-                      </div>
-                    </div>
-                  </template>
 
-                  <!-- Top border branding theme line -->
-                  <div class="absolute top-0 left-0 right-0 h-1" :style="{ backgroundColor: getSelectedThemeColor }"></div>
+                      <!-- Dotted folder guide -->
+                      <div v-if="cardIdx % 2 === 0" class="absolute right-0 top-0 bottom-0 border-r border-dashed border-slate-300 z-10"></div>
+                    </template>
+
+                    <!-- Mode B: Separate Pages layout -->
+                    <template v-else>
+                      <div v-if="page.type === 'front' || printMode === 'single-sided'" class="w-full h-full flex flex-col justify-between items-center text-center">
+                        <div class="w-full flex justify-between items-center text-[7px] text-slate-400">
+                          <span>{{ card.category }}</span>
+                          <span>ด้านหน้า</span>
+                        </div>
+                        <div v-if="card.isEmpty" class="text-slate-200 text-xs font-semibold">การ์ดเปล่าว่าง</div>
+                        <div v-else class="my-auto flex flex-col items-center justify-center">
+                          <div class="font-semibold text-rose-500 font-title tracking-wider leading-tight mb-1" :style="{ fontSize: getCardPinyinSize(card.pinyin) }">
+                            {{ card.pinyin }}
+                          </div>
+                          <div class="font-bold font-chinese tracking-wider text-slate-800 leading-none transition-all mt-0.5" :style="{ fontSize: getCardFontSize(card.chinese) }">
+                            {{ card.chinese }}
+                          </div>
+                        </div>
+                        <div class="w-full flex justify-between items-center text-[8px] font-semibold text-slate-400">
+                          <span>{{ card.emoji }}</span>
+                          <span class="text-[7px]">#{{ card.id }}</span>
+                        </div>
+                      </div>
+
+                      <div v-else class="w-full h-full flex flex-col justify-between items-center text-center bg-slate-50/50">
+                        <div class="w-full flex justify-between items-center text-[7px] text-slate-400">
+                          <span>คำแปลภาษาไทย</span>
+                          <span>{{ card.category }}</span>
+                        </div>
+                        <div v-if="card.isEmpty" class="text-slate-200 text-xs font-semibold">การ์ดเปล่าว่าง</div>
+                        <div v-else class="my-auto">
+                          <div class="text-[13px] font-bold text-slate-800 tracking-wide">{{ card.thai }}</div>
+                          <div class="text-[9px] text-slate-400 mt-1 font-title">({{ card.pinyin }})</div>
+                        </div>
+                        <div class="w-full flex justify-between items-center text-[8px] font-semibold text-slate-400">
+                          <span class="text-[7px]">#{{ card.id }}</span>
+                          <span>{{ card.emoji }}</span>
+                        </div>
+                      </div>
+                    </template>
+
+                    <!-- Top border branding theme line -->
+                    <div class="absolute top-0 left-0 right-0 h-1" :style="{ backgroundColor: getSelectedThemeColor }"></div>
+                  </div>
                 </div>
               </div>
-            </div>
+            </template>
 
             <!-- Empty Previews -->
             <div v-if="printablePages.length === 0" class="text-center py-20 text-slate-400 bg-white rounded-2xl w-full">
@@ -685,7 +750,7 @@
       </section>
 
       <!-- SCREEN 3: VOCABULARY KEEPER & WORD MANAGER -->
-      <section v-if="activeView === 'manager'" class="space-y-6">
+      <section v-if="activeView === 'manager'" class="space-y-6 animate-fade-in">
         
         <!-- Add Card and Quick Filter Panel -->
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -727,7 +792,7 @@
                 </div>
               </div>
 
-              <button @click="addNewCard" class="w-full bg-rose-500 hover:bg-rose-600 text-white font-bold py-3 px-4 rounded-xl text-xs shadow hover:shadow-md transition transform active:scale-95">
+              <button @click="addNewCard" class="w-full bg-rose-500 hover:bg-rose-600 text-white font-bold py-3 px-4 rounded-xl text-xs shadow hover:shadow-md transition transform active:scale-95 font-title">
                 บันทึกคำนี้เข้าสู่ระบบ
               </button>
             </div>
@@ -736,17 +801,25 @@
           <!-- Cards Table and Search (Right side) -->
           <div class="lg:col-span-8 bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
             <div class="p-4 bg-slate-50 border-b flex flex-col md:flex-row justify-between items-center gap-3">
-              <div class="relative w-full md:w-72">
-                <i data-lucide="search" class="absolute left-3 top-2.5 w-4 h-4 text-slate-400"></i>
-                <input 
-                  v-model="searchQuery" 
-                  type="text" 
-                  placeholder="ค้นหาตามตัวอักษร ตัวสะกด พินอิน..." 
-                  class="w-full pl-9 pr-4 py-1.5 text-xs border border-slate-200 rounded-xl focus:ring-2 focus:ring-rose-400 focus:outline-none bg-white"
-                >
+              <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full md:w-auto">
+                <div class="relative w-full sm:w-64">
+                  <i data-lucide="search" class="absolute left-3 top-2.5 w-4 h-4 text-slate-400"></i>
+                  <input 
+                    v-model="searchQuery" 
+                    type="text" 
+                    placeholder="ค้นหาตามตัวอักษร ตัวสะกด พินอิน..." 
+                    class="w-full pl-9 pr-4 py-1.5 text-xs border border-slate-200 rounded-xl focus:ring-2 focus:ring-rose-400 focus:outline-none bg-white"
+                  >
+                </div>
+                
+                <!-- NEW: EXCEL EXPORT BUTTON IN MANAGER -->
+                <button @click="exportToExcel" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2 rounded-xl text-xs flex items-center justify-center gap-1.5 shadow transition-all transform active:scale-95">
+                  <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
+                  ส่งออก Excel
+                </button>
               </div>
 
-              <button @click="showResetModal = true" class="text-rose-500 hover:text-rose-600 font-bold text-xs flex items-center gap-1 transition shrink-0">
+              <button @click="showResetModal = true" class="text-rose-500 hover:text-rose-600 font-bold text-xs flex items-center gap-1 transition shrink-0 font-title">
                 <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
                 รีเซ็ตค่าเริ่มต้นของแบบเรียน (49 คำ)
               </button>
@@ -769,24 +842,24 @@
                   <tr v-for="(card, idx) in filteredManagerCards" :key="card.id" class="border-b border-slate-100 hover:bg-slate-50/50 transition">
                     <td class="py-2.5 px-4 text-center text-slate-400 font-mono">{{ idx + 1 }}</td>
                     <td class="py-2.5 px-2">
-                      <select v-model="card.category" class="border border-slate-200 rounded-lg p-1 bg-white focus:ring focus:ring-rose-100">
+                      <select v-model="card.category" class="border border-slate-200 rounded-lg p-1 bg-white focus:ring focus:ring-rose-100 text-2xs">
                         <option v-for="cat in categories" :key="cat" :value="cat">{{ cat }}</option>
                       </select>
                     </td>
                     <td class="py-2.5 px-2">
                       <div class="flex items-center gap-1.5">
                         <!-- ดักทั้ง click และ touchstart เพื่อป้องกัน LINE App WebView บล็อกเสียง -->
-                        <button @click="speakAndMarkQuiz(card, $event)" @touchstart.stop="speakAndMarkQuiz(card, $event)" class="p-1 rounded bg-orange-100 hover:bg-orange-200 text-orange-600 transition">
+                        <button @click="speakAndMarkQuiz(card, $event)" @touchstart.stop="speakAndMarkQuiz(card, $event)" class="p-1 rounded bg-orange-100 hover:bg-orange-200 text-orange-600 transition shrink-0">
                           <i data-lucide="volume-2" class="w-3.5 h-3.5"></i>
                         </button>
                         <input v-model="card.chinese" type="text" class="font-chinese font-semibold text-slate-800 border border-slate-200 rounded-lg px-2 py-1 w-24">
                       </div>
                     </td>
                     <td class="py-2.5 px-2">
-                      <input v-model="card.pinyin" type="text" class="font-semibold text-slate-600 border border-slate-200 rounded-lg px-2 py-1 w-28">
+                      <input v-model="card.pinyin" type="text" class="font-semibold text-slate-600 border border-slate-200 rounded-lg px-2 py-1 w-28 text-2xs">
                     </td>
                     <td class="py-2.5 px-2">
-                      <input v-model="card.thai" type="text" class="text-slate-700 border border-slate-200 rounded-lg px-2 py-1 w-full">
+                      <input v-model="card.thai" type="text" class="text-slate-700 border border-slate-200 rounded-lg px-2 py-1 w-full text-2xs">
                     </td>
                     <td class="py-2.5 px-2 text-center">
                       <input v-model="card.emoji" type="text" class="text-center border border-slate-200 rounded-lg p-1 w-10">
@@ -811,101 +884,138 @@
 
     </main>
 
-    <!-- 3. PRINT VIEW (Hidden on screen, rendered strictly on physical paper / PDF) -->
+    <!-- 3. PRINT VIEW (Hidden on screen, rendered strictly on A4 paper printing / Save as PDF) -->
     <div class="hidden print:block bg-white w-full">
-      <div v-for="(page, pageIdx) in printablePages" :key="pageIdx" class="print-page">
-        <div class="a4-grid">
-          <div 
-            v-for="(card, cardIdx) in page.cards" 
-            :key="cardIdx"
-            class="card-size border relative flex flex-col justify-between items-center bg-white p-3 overflow-hidden text-slate-900"
-            :style="getCardStyleBorder"
-          >
-            <!-- Foldable Printable Block -->
-            <template v-if="printMode === 'foldable'">
-              <!-- Front -->
-              <div v-if="cardIdx % 2 === 0" class="w-full h-full flex flex-col justify-between items-center text-center">
-                <div class="w-full flex justify-between items-center text-[7px] text-slate-400">
-                  <span>{{ card.category }}</span>
-                  <span>ด้านหน้า ➡️ พับ</span>
-                </div>
-                <div class="my-auto flex flex-col items-center justify-center">
-                  <div class="font-semibold text-rose-500 font-title tracking-wider leading-tight mb-1" :style="{ fontSize: getCardPinyinSize(card.pinyin) }">
-                    {{ card.pinyin }}
+      
+      <!-- Layout Mode A: Card-based printing (requires exact page padding and height bounds) -->
+      <template v-if="printMode !== 'table-list'">
+        <div v-for="(page, pageIdx) in printablePages" :key="pageIdx" class="print-page print-page-cards">
+          <div class="a4-grid bg-white">
+            <div 
+              v-for="(card, cardIdx) in page.cards" 
+              :key="cardIdx"
+              class="card-size border relative flex flex-col justify-between items-center bg-white p-3 overflow-hidden text-slate-900"
+              :style="getCardStyleBorder"
+            >
+              <template v-if="printMode === 'foldable'">
+                <!-- Front side printable card -->
+                <div v-if="cardIdx % 2 === 0" class="w-full h-full flex flex-col justify-between items-center text-center">
+                  <div class="w-full flex justify-between items-center text-[7px] text-slate-400">
+                    <span>{{ card.category }}</span>
+                    <span>ด้านหน้า ➡️ พับ</span>
                   </div>
-                  <div class="font-bold font-chinese tracking-wider text-slate-800 leading-none mt-0.5" :style="{ fontSize: getCardFontSize(card.chinese) }">
-                    {{ card.chinese }}
+                  <div class="my-auto flex flex-col items-center justify-center">
+                    <div class="font-semibold text-rose-500 tracking-wider leading-tight mb-1" :style="{ fontSize: getCardPinyinSize(card.pinyin) }">
+                      {{ card.pinyin }}
+                    </div>
+                    <div class="font-bold font-chinese tracking-wider text-slate-800 leading-none mt-0.5" :style="{ fontSize: getCardFontSize(card.chinese) }">
+                      {{ card.chinese }}
+                    </div>
                   </div>
-                </div>
-                <div class="w-full flex justify-between items-center text-[8px] font-semibold text-slate-400">
-                  <span>{{ card.emoji }}</span>
-                  <span class="text-[7px]">#{{ card.id }}</span>
-                </div>
-              </div>
-
-              <!-- Back -->
-              <div v-else class="w-full h-full flex flex-col justify-between items-center text-center bg-slate-50/50">
-                <div class="w-full flex justify-between items-center text-[7px] text-slate-400">
-                  <span>⬅️ พับ | แปลไทย</span>
-                  <span>{{ card.category }}</span>
-                </div>
-                <div class="my-auto text-center">
-                  <div class="text-[13px] font-bold text-slate-800 tracking-wide">{{ card.thai }}</div>
-                  <div class="text-[9px] text-slate-400 mt-1 font-title">({{ card.pinyin }})</div>
-                </div>
-                <div class="w-full flex justify-between items-center text-[8px] font-semibold text-slate-400">
-                  <span class="text-[7px]">#{{ card.id }}</span>
-                  <span>{{ card.emoji }}</span>
-                </div>
-              </div>
-
-              <!-- Middle Cut line -->
-              <div v-if="cardIdx % 2 === 0" class="absolute right-0 top-0 bottom-0 border-r border-dashed border-slate-300 z-10"></div>
-            </template>
-
-            <!-- Regular Single/Double Pages Block -->
-            <template v-else>
-              <div v-if="page.type === 'front' || printMode === 'single-sided'" class="w-full h-full flex flex-col justify-between items-center text-center">
-                <div class="w-full flex justify-between items-center text-[7px] text-slate-400">
-                  <span>{{ card.category }}</span>
-                  <span>Chinese Cards</span>
-                </div>
-                <div v-if="card.isEmpty" class="text-slate-300 text-xs">การ์ดว่าง</div>
-                <div v-else class="my-auto flex flex-col items-center justify-center">
-                  <div class="font-semibold text-rose-500 font-title tracking-wider leading-tight mb-1" :style="{ fontSize: getCardPinyinSize(card.pinyin) }">
-                    {{ card.pinyin }}
-                  </div>
-                  <div class="font-bold font-chinese tracking-wider text-slate-800 leading-none mt-0.5" :style="{ fontSize: getCardFontSize(card.chinese) }">
-                    {{ card.chinese }}
+                  <div class="w-full flex justify-between items-center text-[8px] font-semibold text-slate-400">
+                    <span>{{ card.emoji }}</span>
+                    <span class="text-[7px]">#{{ card.id }}</span>
                   </div>
                 </div>
-                <div class="w-full flex justify-between items-center text-[8px] font-semibold text-slate-400">
-                  <span>{{ card.emoji }}</span>
-                  <span class="text-[7px]">#{{ card.id }}</span>
-                </div>
-              </div>
 
-              <div v-else class="w-full h-full flex flex-col justify-between items-center text-center bg-slate-50/50">
-                <div class="w-full flex justify-between items-center text-[7px] text-slate-400">
-                  <span>Thai Translation</span>
-                  <span>{{ card.category }}</span>
+                <!-- Back side printable translation card -->
+                <div v-else class="w-full h-full flex flex-col justify-between items-center text-center bg-slate-50/50">
+                  <div class="w-full flex justify-between items-center text-[7px] text-slate-400">
+                    <span>⬅️ พับ | แปลไทย</span>
+                    <span>{{ card.category }}</span>
+                  </div>
+                  <div class="my-auto text-center">
+                    <div class="text-[13px] font-bold text-slate-800 tracking-wide">{{ card.thai }}</div>
+                    <div class="text-[9px] text-slate-400 mt-1 font-title">({{ card.pinyin }})</div>
+                  </div>
+                  <div class="w-full flex justify-between items-center text-[8px] font-semibold text-slate-400">
+                    <span class="text-[7px]">#{{ card.id }}</span>
+                    <span>{{ card.emoji }}</span>
+                  </div>
                 </div>
-                <div v-if="card.isEmpty" class="text-slate-300 text-xs">การ์ดว่าง</div>
-                <div v-else class="my-auto">
-                  <div class="text-[13px] font-bold text-slate-800 tracking-wide">{{ card.thai }}</div>
-                  <div class="text-[9px] text-slate-400 mt-1 font-title">({{ card.pinyin }})</div>
-                </div>
-                <div class="w-full flex justify-between items-center text-[8px] font-semibold text-slate-400">
-                  <span class="text-[7px]">#{{ card.id }}</span>
-                  <span>{{ card.emoji }}</span>
-                </div>
-              </div>
-            </template>
 
-            <div class="absolute top-0 left-0 right-0 h-1" :style="{ backgroundColor: getSelectedThemeColor }"></div>
+                <div v-if="cardIdx % 2 === 0" class="absolute right-0 top-0 bottom-0 border-r border-dashed border-slate-300 z-10"></div>
+              </template>
+
+              <!-- Single/Double Sided Standard layouts -->
+              <template v-else>
+                <div v-if="page.type === 'front' || printMode === 'single-sided'" class="w-full h-full flex flex-col justify-between items-center text-center">
+                  <div class="w-full flex justify-between items-center text-[7px] text-slate-400">
+                    <span>{{ card.category }}</span>
+                    <span>Chinese Cards</span>
+                  </div>
+                  <div v-if="card.isEmpty" class="text-slate-300 text-xs">การ์ดว่าง</div>
+                  <div v-else class="my-auto flex flex-col items-center justify-center">
+                    <div class="font-semibold text-rose-500 tracking-wider leading-tight mb-1" :style="{ fontSize: getCardPinyinSize(card.pinyin) }">
+                      {{ card.pinyin }}
+                    </div>
+                    <div class="font-bold font-chinese tracking-wider text-slate-800 leading-none mt-0.5" :style="{ fontSize: getCardFontSize(card.chinese) }">
+                      {{ card.chinese }}
+                    </div>
+                  </div>
+                  <div class="w-full flex justify-between items-center text-[8px] font-semibold text-slate-400">
+                    <span>{{ card.emoji }}</span>
+                    <span class="text-[7px]">#{{ card.id }}</span>
+                  </div>
+                </div>
+
+                <div v-else class="w-full h-full flex flex-col justify-between items-center text-center bg-slate-50/50">
+                  <div class="w-full flex justify-between items-center text-[7px] text-slate-400">
+                    <span>Thai Translation</span>
+                    <span>{{ card.category }}</span>
+                  </div>
+                  <div v-if="card.isEmpty" class="text-slate-300 text-xs">การ์ดว่าง</div>
+                  <div v-else class="my-auto">
+                    <div class="text-[13px] font-bold text-slate-800 tracking-wide">{{ card.thai }}</div>
+                    <div class="text-[9px] text-slate-400 mt-1 font-title">({{ card.pinyin }})</div>
+                  </div>
+                  <div class="w-full flex justify-between items-center text-[8px] font-semibold text-slate-400">
+                    <span class="text-[7px]">#{{ card.id }}</span>
+                    <span>{{ card.emoji }}</span>
+                  </div>
+                </div>
+              </template>
+
+              <div class="absolute top-0 left-0 right-0 h-1" :style="{ backgroundColor: getSelectedThemeColor }"></div>
+            </div>
           </div>
         </div>
-      </div>
+      </template>
+
+      <!-- NEW PRINT MODE B: Portrait A4 table list layout -->
+      <template v-else>
+        <div class="print-page print-page-table bg-white text-slate-900 w-[210mm] p-12">
+          <div class="text-center mb-8 border-b-2 border-rose-500 pb-4">
+            <h1 class="font-title text-xl font-bold">ตารางสรุปคำศัพท์ภาษาจีนระดับประถมศึกษา</h1>
+            <p class="text-xs text-slate-500 mt-1">คลังคำศัพท์ภาษาจีนกลาง พินอิน และคำแปลภาษาไทยอย่างย่อ</p>
+          </div>
+          
+          <table class="w-full text-left text-xs border-collapse border border-slate-300">
+            <thead>
+              <tr class="bg-slate-100 text-slate-700 font-bold border-b border-slate-400 font-title">
+                <th class="py-2.5 px-3 border border-slate-300 w-12 text-center">#</th>
+                <th class="py-2.5 px-3 border border-slate-300 w-44">หมวดหมู่</th>
+                <th class="py-2.5 px-3 border border-slate-300 font-chinese text-sm">ตัวอักษรจีน (Chinese)</th>
+                <th class="py-2.5 px-3 border border-slate-300">พินอิน (Pinyin)</th>
+                <th class="py-2.5 px-3 border border-slate-300">คำแปลภาษาไทย</th>
+                <th class="py-2.5 px-3 border border-slate-300 w-16 text-center">อีโมจิ</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- This loop repeats inside printable portrait table natively breaking on A4 boundary -->
+              <tr v-for="(card, idx) in printFilteredCards" :key="card.id" class="border-b border-slate-200">
+                <td class="py-2 px-3 border border-slate-300 text-center font-mono text-slate-400">{{ idx + 1 }}</td>
+                <td class="py-2 px-3 border border-slate-300 text-slate-500 font-medium text-[10px]">{{ card.category }}</td>
+                <td class="py-2 px-3 border border-slate-300 font-chinese font-bold text-lg text-slate-800 tracking-wide">{{ card.chinese }}</td>
+                <td class="py-2 px-3 border border-slate-300 font-semibold text-rose-600 text-sm font-title">{{ card.pinyin }}</td>
+                <td class="py-2 px-3 border border-slate-300 font-medium text-slate-700 text-xs">{{ card.thai }}</td>
+                <td class="py-2 px-3 border border-slate-300 text-center text-base">{{ card.emoji }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </template>
+
     </div>
 
     <!-- 4. HELP MODAL -->
@@ -921,7 +1031,7 @@
         </div>
 
         <div class="space-y-4 text-xs text-slate-600 leading-relaxed">
-          <p class="font-semibold text-slate-800">เพื่อให้พิมพ์การ์ดออกมาราบรื่นและได้สัดส่วนนามบัตร (90x54 มม.) ที่ถูกต้องพอดี:</p>
+          <p class="font-semibold text-slate-800">เพื่อให้พิมพ์การ์ดออกมาราบรื่นและได้สัดส่วนนามบัตร (90x54 มม.) หรือตาราง A4 ที่ถูกต้องพอดี:</p>
           
           <div class="space-y-2.5">
             <div class="flex gap-2.5 items-start">
@@ -959,7 +1069,7 @@
         </div>
 
         <div class="mt-6 flex justify-end">
-          <button @click="showHelpModal = false" class="bg-slate-900 hover:bg-slate-800 text-white font-bold py-2 px-6 rounded-xl text-xs transition">
+          <button @click="showHelpModal = false" class="bg-slate-900 hover:bg-slate-800 text-white font-bold py-2 px-6 rounded-xl text-xs transition animate-fade-in">
             รับทราบและปิดหน้านี้
           </button>
         </div>
@@ -1021,7 +1131,7 @@
           { id: 11, category: "1. หมวดเดือน (Months)", chinese: "十一月", pinyin: "shí yī yuè", thai: "พฤศจิกายน", emoji: "🌲" },
           { id: 12, category: "1. หมวดเดือน (Months)", chinese: "十二月", pinyin: "shí èr yuè", thai: "ธันวาคม", emoji: "🎄" },
           
-          { id: 13, category: "2. หมวดวันทั้ง 7 (Weeks)", chinese: "星期一", pinyin: "xīng qī yī", thai: "วันจันทร์", emoji: "🎹" },
+          { id: 13, category: "2. หมวดวันทั้ง 7 (Weeks)", chinese: "星期一", pinyin: "xīng qี yī", thai: "วันจันทร์", emoji: "🎹" },
           { id: 14, category: "2. หมวดวันทั้ง 7 (Weeks)", chinese: "星期二", pinyin: "xīng qī èr", thai: "วันอังคาร", emoji: "📝" },
           { id: 15, category: "2. หมวดวันทั้ง 7 (Weeks)", chinese: "星期三", pinyin: "xīng qī sān", thai: "วันพุธ", emoji: "🎨" },
           { id: 16, category: "2. หมวดวันทั้ง 7 (Weeks)", chinese: "星期六", pinyin: "xīng qī liù", thai: "วันเสาร์", emoji: "🎭" },
@@ -1045,7 +1155,7 @@
           { id: 33, category: "3. เวลาและนาฬิกา (Time)", chinese: "七点三刻", pinyin: "qī diǎn sān kè", thai: "7 โมง 45 นาที", emoji: "🕗" },
           { id: 34, category: "3. เวลาและนาฬิกา (Time)", chinese: "十点五十五分", pinyin: "shí diǎn wǔ shí wǔ fēn", thai: "10 โมง 55 นาที", emoji: "🕙" },
           { id: 35, category: "3. เวลาและนาฬิกา (Time)", chinese: "现在几点？", pinyin: "xiàn zài jǐ diǎn?", thai: "ตอนนี้กี่โมงแล้ว?", emoji: "⌚" },
-          { id: 36, category: "3. เวลาและนาฬิกา (Time)", chinese: "现​​​在两点一刻。", pinyin: "xiàn zài liǎng diǎn yí kè", thai: "ตอนนี้บ่ายสองโมงสิบห้านาที", emoji: "🕑" },
+          { id: 36, category: "3. เวลาและนาฬิกา (Time)", chinese: "现在两点一刻。", pinyin: "xiàn zài liǎng diǎn yí kè", thai: "ตอนนี้บ่ายสองโมงสิบห้านาที", emoji: "🕑" },
           { id: 37, category: "3. เวลาและนาฬิกา (Time)", chinese: "你几点去上学？", pinyin: "nǐ jǐ diǎn qù shàng xué?", thai: "คุณไปโรงเรียนกี่โมง?", emoji: "🎒" },
           { id: 38, category: "3. เวลาและนาฬิกา (Time)", chinese: "你几点放学回家？", pinyin: "nǐ jǐ diǎn fàng xué huí jiā?", thai: "คุณเลิกเรียนกลับบ้านกี่โมง?", emoji: "🏠" },
 
@@ -1054,12 +1164,12 @@
           { id: 41, category: "4. วันเกิด & อารมณ์ (Birthday)", chinese: "开心", pinyin: "kāi xīn", thai: "ดีใจ / มีความสุข", emoji: "😊" },
           { id: 42, category: "4. วันเกิด & อารมณ์ (Birthday)", chinese: "祝", pinyin: "zhù", thai: "อวยพร / ขอให้", emoji: "🤝" },
           { id: 43, category: "4. วันเกิด & อารมณ์ (Birthday)", chinese: "快乐", pinyin: "kuài lè", thai: "มีความสุข", emoji: "🎉" },
-          { id: 44, category: "4. วันเกิด & อารมณ์ (Birthday)", chinese: "你的生日是几月几号？", pinyin: "nǐ de sheng rì s​​hì jǐ yuè jǐ hào", thai: "วันเกิดของคุณคือวันที่เท่าไหร่?", emoji: "📅" },
-          { id: 45, category: "4. วันเกิด & อารมณ์ (Birthday)", chinese: "我的生日是五月十号。", pinyin: "wǒ de sheng rì s​​hì wǔ yuè shí hào", thai: "วันเกิดของฉันคือวันที่ 10 พฤษภาคม", emoji: "🎈" },
-          { id: 46, category: "4. วันเกิด & อารมณ์ (Birthday)", chinese: "你几岁了？", pinyin: "nǐ jǐ suì le?", thai: "คุณอายุเท่าไหร่?", emoji: "🧒" },
+          { id: 44, category: "4. วันเกิด & อารมณ์ (Birthday)", chinese: "你的生日เป็น几月几号？", pinyin: "nǐ de sheng rì s​​hì jǐ yuè jǐ hào", thai: "วันเกิดของคุณคือวันที่เท่าไหร่?", emoji: "📅" },
+          { id: 45, category: "4. วันเกิด & อารมณ์ (Birthday)", chinese: "我的生日เป็น五月十号。", pinyin: "wǒ de sheng rì s​​hì wǔ yuè shí hào", thai: "วันเกิดของฉันคือวันที่ 10 พฤษภาคม", emoji: "🎈" },
+          { id: 46, category: "4. วันเกิด & อารมณ์ (Birthday)", chinese: "คุณอายุเท่าไหร่", pinyin: "nǐ jǐ suì le?", thai: "คุณอายุเท่าไหร่?", emoji: "🧒" },
           { id: 47, category: "4. วันเกิด & อารมณ์ (Birthday)", chinese: "我七岁了。", pinyin: "wǒ qī suì le", thai: "ฉันอายุเจ็ดขวบแล้ว", emoji: "7️⃣" },
-          { id: 48, category: "4. วันเกิด & อารมณ์ (Birthday)", chinese: "你今天开心吗？", pinyin: "nǐ jīn tiān kāi xīn ma?", thai: "วันนี้คุณมีความสุขไหม?", emoji: "😄" },
-          { id: 49, category: "4. วันเกิด & อารมณ์ (Birthday)", chinese: "我今天很开心。", pinyin: "wǒ jīn tiān hěn kāi xīn", thai: "วันนี้ฉันมีความสุขมาก", emoji: "🥰" }
+          { id: 48, category: "4. วันเกิด & อารมณ์ (Birthday)", chinese: "คุณวันนี้มีความสุขไหม", pinyin: "nǐ jīn tiān kāi xīn ma?", thai: "วันนี้คุณมีความสุขไหม?", emoji: "😄" },
+          { id: 49, category: "4. วันเกิด & อารมณ์ (Birthday)", chinese: "我วันนี้很开心。", pinyin: "wǒ jīn tiān hěn kāi xīn", thai: "วันนี้ฉันมีความสุขมาก", emoji: "🥰" }
         ];
 
         // Custom Toast Notifications
@@ -1094,6 +1204,9 @@
         const selectedTheme = ref('pastel-rose');
         const showHelpModal = ref(false);
         const showResetModal = ref(false); // Custom Vue reset confirmation modal
+
+        // --- NEW COLLAPSIBLE STATE DECLARATIONS ---
+        const isControlsExpanded = ref(true); // Default to open setup bar panel
 
         // --- INTERACTIVE CLASSROOM STATE (PLAY MODE) ---
         const playCategory = ref('All');
@@ -1339,6 +1452,46 @@
           // Speak test phrase synchronously
           speakChinese("你好", true);
           triggerToast('🔊 ส่งสัญญาณเสียงภาษาจีน "หนีห่าว" ไปยังลำโพงแล้ว! หากเงียบ โปรดปิดโหมดสั่น/ปุ่มปิดเสียงสั่นบนข้าง iPad ของคุณครูครับ', 'warning');
+        };
+
+        // --- NEW PANEL TOGGLE METHOD ---
+        const toggleControlsPanel = () => {
+          isControlsExpanded.value = !isControlsExpanded.value;
+          // Re-trigger Lucide Icons to re-evaluate updated SVG chevron direction arrow
+          nextTick(() => {
+            lucide.createIcons();
+          });
+        };
+
+        // --- NEW EXCEL EXPORT METHOD ---
+        const exportToExcel = () => {
+          let csvContent = "\ufeff"; // UTF-8 BOM to support Chinese & Thai in MS Excel
+          csvContent += "ลำดับ,หมวดหมู่,ตัวอักษรจีน (Chinese),พินอิน (Pinyin),คำแปลภาษาไทย (Thai),อีโมจิ\n";
+          
+          const listToExport = printCategory.value === 'All' ? cards.value : printFilteredCards.value;
+          
+          listToExport.forEach((card, idx) => {
+            const row = [
+              idx + 1,
+              `"${card.category.replace(/"/g, '""')}"`,
+              `"${card.chinese.replace(/"/g, '""')}"`,
+              `"${card.pinyin.replace(/"/g, '""')}"`,
+              `"${card.thai.replace(/"/g, '""')}"`,
+              `"${card.emoji.replace(/"/g, '""')}"`
+            ];
+            csvContent += row.join(",") + "\n";
+          });
+          
+          const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement("a");
+          link.setAttribute("href", url);
+          link.setAttribute("download", `ตารางคำศัพท์ภาษาจีน_${printCategory.value}.csv`);
+          link.style.visibility = 'hidden';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          triggerToast('📊 ส่งออกไฟล์ Excel (.csv) สำเร็จ! สามารถเปิดใน Excel ได้ทันที', 'success');
         };
 
         // Replace a specific card on the active board with a fresh unused word
@@ -1878,7 +2031,14 @@
 
           // Toasts
           toasts,
-          triggerToast
+          triggerToast,
+
+          // Collapsible states
+          isControlsExpanded,
+          toggleControlsPanel,
+
+          // Excel Export
+          exportToExcel
         };
       }
     }).mount('#app');
