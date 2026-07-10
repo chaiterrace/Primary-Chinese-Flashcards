@@ -869,7 +869,7 @@
                     </td>
                   </tr>
                   <tr v-if="filteredManagerCards.length === 0">
-                    <td colspan="7" class="py-12 text-center text-slate-400 font-title">ไม่พบคลิปข้อมูลหรือคำค้นหาที่คุณต้องการ</td>
+                    <td colspan="7" class="py-12 text-center text-slate-400">ไม่พบคลิปข้อมูลหรือคำค้นหาที่คุณต้องการ</td>
                   </tr>
                 </tbody>
               </table>
@@ -1027,14 +1027,14 @@
           <h3 class="font-title text-lg font-bold">คู่มือการตั้งค่าเครื่องพิมพ์ (A4 PDF)</h3>
         </div>
 
-        <div class="space-y-4 text-xs text-slate-600 leading-relaxed font-title">
+        <div class="space-y-4 text-xs text-slate-600 leading-relaxed">
           <p class="font-semibold text-slate-800">เพื่อให้พิมพ์การ์ดออกมาราบรื่นและได้สัดส่วนนามบัตร (90x54 มม.) ที่ถูกต้องพอดี:</p>
           
-          <div class="space-y-2.5 font-title">
+          <div class="space-y-2.5">
             <div class="flex gap-2.5 items-start">
               <span class="bg-rose-100 text-rose-600 rounded-full w-5 h-5 flex items-center justify-center font-bold text-xs shrink-0">1</span>
               <div>
-                <p class="font-bold text-slate-800 font-title">ปลายทาง (Destination)</p>
+                <p class="font-bold text-slate-800">ปลายทาง (Destination)</p>
                 <p>เลือกเป็น <strong class="text-rose-600">"บันทึกเป็น PDF" (Save as PDF)</strong> หรือเลือกเครื่องพิมพ์ตัวโปรด</p>
               </div>
             </div>
@@ -1042,7 +1042,7 @@
             <div class="flex gap-2.5 items-start">
               <span class="bg-rose-100 text-rose-600 rounded-full w-5 h-5 flex items-center justify-center font-bold text-xs shrink-0">2</span>
               <div>
-                <p class="font-bold text-slate-800 font-title">ระยะขอบ (Margins)</p>
+                <p class="font-bold text-slate-800">ระยะขอบ (Margins)</p>
                 <p>ปรับเป็น <strong class="text-rose-600">"ไม่มีระยะขอบ" (None)</strong> เพื่อเอาแถบหัวและท้ายกระดาษออกไป</p>
               </div>
             </div>
@@ -1050,7 +1050,7 @@
             <div class="flex gap-2.5 items-start">
               <span class="bg-rose-100 text-rose-600 rounded-full w-5 h-5 flex items-center justify-center font-bold text-xs shrink-0">3</span>
               <div>
-                <p class="font-bold text-slate-800 font-title">มาตราส่วน (Scale)</p>
+                <p class="font-bold text-slate-800">มาตราส่วน (Scale)</p>
                 <p>ปรับเป็น <strong class="text-rose-600">100% หรือ "ปกติ" (Default)</strong> ห้ามขยายหรือยืดหยุ่นหน้ากระดาษครับ</p>
               </div>
             </div>
@@ -1058,7 +1058,7 @@
             <div class="flex gap-2.5 items-start">
               <span class="bg-rose-100 text-rose-600 rounded-full w-5 h-5 flex items-center justify-center font-bold text-xs shrink-0">4</span>
               <div>
-                <p class="font-bold text-slate-800 font-title">กราฟิกพื้นหลัง (Background Graphics)</p>
+                <p class="font-bold text-slate-800">กราฟิกพื้นหลัง (Background Graphics)</p>
                 <p>เลือก <strong class="text-rose-600">"เปิดใช้กราฟิกสีพื้นหลัง"</strong> เพื่อคงแถบสีหัวการ์ดและสีพาสเทลสวยงาม</p>
               </div>
             </div>
@@ -1066,7 +1066,7 @@
         </div>
 
         <div class="mt-6 flex justify-end">
-          <button @click="showHelpModal = false" class="bg-slate-900 hover:bg-slate-800 text-white font-bold py-2 px-6 rounded-xl text-xs transition">
+          <button @click="showHelpModal = false" class="bg-slate-900 hover:bg-slate-800 text-white font-bold py-2 px-6 rounded-xl text-xs transition animate-fade-in">
             รับทราบและปิดหน้านี้
           </button>
         </div>
@@ -1135,9 +1135,9 @@
           { id: 15, category: "2. หมวดวันทั้ง 7 (Weeks)", chinese: "星期三", pinyin: "xīng qī sān", thai: "วันพุธ", emoji: "🎨" },
           { id: 16, category: "2. หมวดวันทั้ง 7 (Weeks)", chinese: "星期六", pinyin: "xīng qī liù", thai: "วันเสาร์", emoji: "🎭" },
           { id: 17, category: "2. หมวดวันทั้ง 7 (Weeks)", chinese: "星期天", pinyin: "xīng qī tiān", thai: "วันอาทิตย์", emoji: "🧺" },
-          { id: 18, category: "2. หมวดวันทั้ง 7 (Weeks)", chinese: "今天星期天。", pinyin: "jīn tiān xīng qี tiān", thai: "วันนี้คือวันอาทิตย์", emoji: "🐦" },
+          { id: 18, category: "2. หมวดวันทั้ง 7 (Weeks)", chinese: "今天星期天。", pinyin: "jīn tiān xīng qī tiān", thai: "วันนี้คือวันอาทิตย์", emoji: "🐦" },
           { id: 19, category: "2. หมวดวันทั้ง 7 (Weeks)", chinese: "今天星期几？", pinyin: "jīn tiān xīng qī jǐ?", thai: "วันนี้วันอะไร?", emoji: "❓" },
-          { id: 20, category: "2. หมวดวันทั้ง 7 (Weeks)", chinese: "今天星期一。", pinyin: "jīn tiān xīng qī yī", thai: "วันนี้คือวันจันทร์", emoji: "✅" }, // FIXED: ลบ "ยี่" ออกจากจีน
+          { id: 20, category: "2. หมวดวันทั้ง 7 (Weeks)", chinese: "今天星期หนึ่ง。", pinyin: "jīn tiān xīng qī yī", thai: "วันนี้คือวันจันทร์", emoji: "✅" }, // FIXED: ลบ "ยี่" ออกจากจีน
           { id: 21, category: "2. หมวดวันทั้ง 7 (Weeks)", chinese: "今天几月几号？", pinyin: "jīn tiān jǐ yuè jǐ hao?", thai: "วันนี้วันที่เท่าไหร่เดือนอะไร?", emoji: "📅" },
           { id: 22, category: "2. หมวดวันทั้ง 7 (Weeks)", chinese: "今天九月二十五号。", pinyin: "jīn tiān jiǔ yuè èr shí wǔ hào", thai: "วันนี้วันที่ 25 กันยายน", emoji: "📆" },
 
@@ -1148,7 +1148,7 @@
           { id: 27, category: "3. เวลาและนาฬิกา (Time)", chinese: "半", pinyin: "bàn", thai: "ครึ่ง (30 นาที)", emoji: "🕕" },
           { id: 28, category: "3. เวลาและนาฬิกา (Time)", chinese: "十二点零五分", pinyin: "shí èr diǎn líng wǔ fēn", thai: "12 โมง 5 นาที", emoji: "🕐" },
           { id: 29, category: "3. เวลาและนาฬิกา (Time)", chinese: "十二点一刻", pinyin: "shí èr diǎn yí kè", thai: "12 โมง 15 นาที", emoji: "🕒" },
-          { id: 30, category: "3. เวลาและนาฬิกา (Time)", chinese: "十一点三刻", pinyin: "shí yī diǎn sān kè", thai: "11 โมง 45 นาที", emoji: "🕘" }, // FIXED: ลบ "หนึ่ง" ไทยออก
+          { id: 30, category: "3. เวลาและนาฬิกา (Time)", chinese: "十หนึ่ง点三刻", pinyin: "shí yī diǎn sān kè", thai: "11 โมง 45 นาที", emoji: "🕘" }, // FIXED: ลบ "หนึ่ง" ไทยออก
           { id: 31, category: "3. เวลาและนาฬิกา (Time)", chinese: "十二点半", pinyin: "shí èr diǎn bàn", thai: "เที่ยงครึ่ง / 12 โมงครึ่ง", emoji: "6️⃣" },
           { id: 32, category: "3. เวลาและนาฬิกา (Time)", chinese: "五点半", pinyin: "wǔ diǎn bàn", thai: "5 โมงครึ่ง", emoji: "🕠" },
           { id: 33, category: "3. เวลาและนาฬิกา (Time)", chinese: "七点三刻", pinyin: "qī diǎn sān kè", thai: "7 โมง 45 นาที", emoji: "🕗" },
@@ -1159,7 +1159,7 @@
           { id: 38, category: "3. เวลาและนาฬิกา (Time)", chinese: "你几点放学回家？", pinyin: "nǐ jǐ diǎn fàng xué huí jiā?", thai: "คุณเลิกเรียนกลับบ้านกี่โมง?", emoji: "🏠" },
 
           { id: 39, category: "4. วันเกิด & อารมณ์ (Birthday)", chinese: "生日", pinyin: "shēng rì", thai: "วันเกิด", emoji: "🎂" },
-          { id: 40, category: "4. วันเกิด & อารมณ์ (Birthday)", chinese: "今天是我的生日。", pinyin: "jīn tiān shì wǒ de sheng rì", thai: "วันนี้เป็นวันเกิดของฉัน", emoji: "🎁" },
+          { id: 40, category: "4. วันเกิด & อารมณ์ (Birthday)", chinese: "今天是我的生日。", pinyin: "jīn tiān饰wǒ de sheng rì", thai: "วันนี้เป็นวันเกิดของฉัน", emoji: "🎁" },
           { id: 41, category: "4. วันเกิด & อารมณ์ (Birthday)", chinese: "开心", pinyin: "kāi xīn", thai: "ดีใจ / มีความสุข", emoji: "😊" },
           { id: 42, category: "4. วันเกิด & อารมณ์ (Birthday)", chinese: "祝", pinyin: "zhù", thai: "อวยพร / ขอให้", emoji: "🤝" },
           { id: 43, category: "4. วันเกิด & อารมณ์ (Birthday)", chinese: "快乐", pinyin: "kuài lè", thai: "มีความสุข", emoji: "🎉" },
@@ -1662,7 +1662,16 @@
         };
 
         // Directly trigger speech sound from board button (User-initiated direct click!)
+        // ป้องกันสิทธิ์การสั่นสะเทือนสัญญาณสะดุดบน LINE App WebView
+        let lastSpeakTime = 0;
         const speakAndMarkQuiz = (card, event) => {
+          if (event) {
+            const now = Date.now();
+            if (now - lastSpeakTime < 400) {
+              return; // บล็อกสัญญาณซ้ำซ้อนเพื่อป้องกันเสียงกระตุกหรือสะดุดในเบราว์เซอร์ LINE
+            }
+            lastSpeakTime = now;
+          }
           speakChinese(card.chinese, true);
         };
 
