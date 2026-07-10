@@ -153,7 +153,7 @@
           </button>
           <button 
             @click="switchView('print')" 
-            :class="activeView === 'print' ? 'bg-white text-rose-600 shadow-sm' : 'text-white hover:bg-white/10'"
+            :class="activeView === 'print' ? 'bg-white text-rose-600 shadow-sm font-bold' : 'text-white hover:bg-white/10'"
             class="px-4 py-2 rounded-lg text-xs transition flex items-center gap-2"
           >
             <i data-lucide="printer" class="w-4 h-4"></i>
@@ -161,7 +161,7 @@
           </button>
           <button 
             @click="switchView('manager')" 
-            :class="activeView === 'manager' ? 'bg-white text-rose-600 shadow-sm' : 'text-white hover:bg-white/10'"
+            :class="activeView === 'manager' ? 'bg-white text-rose-600 shadow-sm font-bold' : 'text-white hover:bg-white/10'"
             class="px-4 py-2 rounded-lg text-xs transition flex items-center gap-2"
           >
             <i data-lucide="database" class="w-4 h-4"></i>
@@ -347,7 +347,7 @@
             </div>
             <div>
               <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">คำศัพท์ในกลุ่มเป้าหมาย</div>
-              <div class="text-xl font-extrabold text-blue-700 font-title">{{ totalPoolCount }} คำ</div>
+              <div class="text-xl font-extrabold text-blue-700 font-title font-title">{{ totalPoolCount }} คำ</div>
             </div>
           </div>
 
@@ -378,11 +378,11 @@
         </div>
 
         <!-- FULLY CLEARED OVERLAY BANNER -->
-        <div v-if="isBoardFullyCleared" class="bg-gradient-to-r from-emerald-500 to-teal-600 text-white p-10 rounded-3xl text-center shadow-xl max-w-2xl mx-auto animate-bounce space-y-4">
+        <div v-if="isBoardFullyCleared" class="bg-gradient-to-r from-emerald-500 to-teal-600 text-white p-10 rounded-3xl text-center shadow-xl max-w-2xl mx-auto animate-bounce space-y-4 font-title">
           <div class="bg-white/20 inline-block p-4 rounded-full">
             <i data-lucide="trophy" class="w-16 h-16 text-yellow-300"></i>
           </div>
-          <h2 class="font-title text-2xl font-bold">🏆 ยอดเยี่ยมมากครับเด็กๆ!</h2>
+          <h2 class="text-2xl font-bold">🏆 ยอดเยี่ยมมากครับเด็กๆ!</h2>
           <p class="text-sm font-semibold">เล่นคำศัพท์ในรอบนี้ผ่านครบถ้วนกระดานแล้ว!</p>
           <button @click="resetBoardToStartingState" class="bg-white text-emerald-700 font-extrabold px-6 py-3 rounded-2xl hover:bg-slate-100 transition shadow transform active:scale-95 text-xs">
             🔄 เริ่มเล่นรอบใหม่อีกครั้ง
@@ -472,7 +472,7 @@
         </div>
 
         <!-- Helpful Hint -->
-        <div class="bg-blue-50 border border-blue-200 p-4 rounded-2xl flex items-start gap-2.5 max-w-4xl mx-auto">
+        <div class="bg-blue-50 border border-blue-200 p-4 rounded-2xl flex items-start gap-2.5 max-w-4xl mx-auto font-title">
           <i data-lucide="info" class="w-5 h-5 text-blue-600 mt-0.5 shrink-0"></i>
           <div>
             <p class="text-xs text-slate-700 leading-relaxed font-semibold">
@@ -596,7 +596,7 @@
 
         <!-- Preview Page Grid Area (Right side) -->
         <div class="xl:col-span-8 flex flex-col items-center">
-          <div class="text-xs text-slate-400 mb-2 font-semibold">
+          <div class="text-xs text-slate-400 mb-2 font-semibold font-title">
             แสดงผลการจำลองหน้ากระดาษ A4 (A4 Screen Preview Simulation)
           </div>
 
@@ -698,7 +698,7 @@
                           <span>{{ card.category }}</span>
                           <span>ด้านหน้า</span>
                         </div>
-                        <div v-if="card.isEmpty" class="text-slate-200 text-xs font-semibold">การ์ดเปล่าว่าง</div>
+                        <div v-if="card.isEmpty" class="text-slate-200 text-xs font-semibold font-title">การ์ดเปล่าว่าง</div>
                         <div v-else class="my-auto flex flex-col items-center justify-center">
                           <div class="font-semibold text-rose-500 font-title tracking-wider leading-tight mb-1" :style="{ fontSize: getCardPinyinSize(card.pinyin) }">
                             {{ card.pinyin }}
@@ -718,7 +718,7 @@
                           <span>คำแปลภาษาไทย</span>
                           <span>{{ card.category }}</span>
                         </div>
-                        <div v-if="card.isEmpty" class="text-slate-200 text-xs font-semibold">การ์ดเปล่าว่าง</div>
+                        <div v-if="card.isEmpty" class="text-slate-200 text-xs font-semibold font-title">การ์ดเปล่าว่าง</div>
                         <div v-else class="my-auto">
                           <div class="text-[13px] font-bold text-slate-800 tracking-wide">{{ card.thai }}</div>
                           <div class="text-[9px] text-slate-400 mt-1 font-title">({{ card.pinyin }})</div>
@@ -739,7 +739,7 @@
 
             <!-- Empty Previews -->
             <div v-if="printablePages.length === 0" class="text-center py-20 text-slate-400 bg-white rounded-2xl w-full">
-              <i data-lucide="file-warning" class="w-12 h-12 mx-auto mb-2 opacity-50"></i>
+              <i data-lucide="file-warning" class="w-12 h-12 mx-auto mb-2 opacity-50 font-title"></i>
               ไม่มีรายการคำศัพท์ที่จะพิมพ์
             </div>
           </div>
@@ -869,7 +869,7 @@
                     </td>
                   </tr>
                   <tr v-if="filteredManagerCards.length === 0">
-                    <td colspan="7" class="py-12 text-center text-slate-400">ไม่พบคลิปข้อมูลหรือคำค้นหาที่คุณต้องการ</td>
+                    <td colspan="7" class="py-12 text-center text-slate-400 font-title">ไม่พบคลิปข้อมูลหรือคำค้นหาที่คุณต้องการ</td>
                   </tr>
                 </tbody>
               </table>
@@ -1027,14 +1027,14 @@
           <h3 class="font-title text-lg font-bold">คู่มือการตั้งค่าเครื่องพิมพ์ (A4 PDF)</h3>
         </div>
 
-        <div class="space-y-4 text-xs text-slate-600 leading-relaxed">
+        <div class="space-y-4 text-xs text-slate-600 leading-relaxed font-title">
           <p class="font-semibold text-slate-800">เพื่อให้พิมพ์การ์ดออกมาราบรื่นและได้สัดส่วนนามบัตร (90x54 มม.) ที่ถูกต้องพอดี:</p>
           
-          <div class="space-y-2.5">
+          <div class="space-y-2.5 font-title">
             <div class="flex gap-2.5 items-start">
               <span class="bg-rose-100 text-rose-600 rounded-full w-5 h-5 flex items-center justify-center font-bold text-xs shrink-0">1</span>
               <div>
-                <p class="font-bold text-slate-800">ปลายทาง (Destination)</p>
+                <p class="font-bold text-slate-800 font-title">ปลายทาง (Destination)</p>
                 <p>เลือกเป็น <strong class="text-rose-600">"บันทึกเป็น PDF" (Save as PDF)</strong> หรือเลือกเครื่องพิมพ์ตัวโปรด</p>
               </div>
             </div>
@@ -1042,7 +1042,7 @@
             <div class="flex gap-2.5 items-start">
               <span class="bg-rose-100 text-rose-600 rounded-full w-5 h-5 flex items-center justify-center font-bold text-xs shrink-0">2</span>
               <div>
-                <p class="font-bold text-slate-800">ระยะขอบ (Margins)</p>
+                <p class="font-bold text-slate-800 font-title">ระยะขอบ (Margins)</p>
                 <p>ปรับเป็น <strong class="text-rose-600">"ไม่มีระยะขอบ" (None)</strong> เพื่อเอาแถบหัวและท้ายกระดาษออกไป</p>
               </div>
             </div>
@@ -1050,7 +1050,7 @@
             <div class="flex gap-2.5 items-start">
               <span class="bg-rose-100 text-rose-600 rounded-full w-5 h-5 flex items-center justify-center font-bold text-xs shrink-0">3</span>
               <div>
-                <p class="font-bold text-slate-800">มาตราส่วน (Scale)</p>
+                <p class="font-bold text-slate-800 font-title">มาตราส่วน (Scale)</p>
                 <p>ปรับเป็น <strong class="text-rose-600">100% หรือ "ปกติ" (Default)</strong> ห้ามขยายหรือยืดหยุ่นหน้ากระดาษครับ</p>
               </div>
             </div>
@@ -1058,7 +1058,7 @@
             <div class="flex gap-2.5 items-start">
               <span class="bg-rose-100 text-rose-600 rounded-full w-5 h-5 flex items-center justify-center font-bold text-xs shrink-0">4</span>
               <div>
-                <p class="font-bold text-slate-800">กราฟิกพื้นหลัง (Background Graphics)</p>
+                <p class="font-bold text-slate-800 font-title">กราฟิกพื้นหลัง (Background Graphics)</p>
                 <p>เลือก <strong class="text-rose-600">"เปิดใช้กราฟิกสีพื้นหลัง"</strong> เพื่อคงแถบสีหัวการ์ดและสีพาสเทลสวยงาม</p>
               </div>
             </div>
@@ -1074,7 +1074,7 @@
     </div>
 
     <!-- CUSTOM CONFIRMATION RESET MODAL -->
-    <div v-if="showResetModal" class="no-print fixed inset-0 z-[110] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+    <div v-if="showResetModal" class="no-print fixed inset-0 z-[110] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm font-title">
       <div class="bg-white rounded-3xl shadow-2xl max-w-sm w-full p-6 text-center space-y-4">
         <div class="bg-rose-100 text-rose-600 p-3 rounded-full inline-block">
           <i data-lucide="rotate-ccw" class="w-8 h-8"></i>
@@ -1135,7 +1135,7 @@
           { id: 15, category: "2. หมวดวันทั้ง 7 (Weeks)", chinese: "星期三", pinyin: "xīng qī sān", thai: "วันพุธ", emoji: "🎨" },
           { id: 16, category: "2. หมวดวันทั้ง 7 (Weeks)", chinese: "星期六", pinyin: "xīng qī liù", thai: "วันเสาร์", emoji: "🎭" },
           { id: 17, category: "2. หมวดวันทั้ง 7 (Weeks)", chinese: "星期天", pinyin: "xīng qī tiān", thai: "วันอาทิตย์", emoji: "🧺" },
-          { id: 18, category: "2. หมวดวันทั้ง 7 (Weeks)", chinese: "今天星期天。", pinyin: "jīn tiān xīng qī tiān", thai: "วันนี้คือวันอาทิตย์", emoji: "🐦" },
+          { id: 18, category: "2. หมวดวันทั้ง 7 (Weeks)", chinese: "今天星期天。", pinyin: "jīn tiān xīng qี tiān", thai: "วันนี้คือวันอาทิตย์", emoji: "🐦" },
           { id: 19, category: "2. หมวดวันทั้ง 7 (Weeks)", chinese: "今天星期几？", pinyin: "jīn tiān xīng qī jǐ?", thai: "วันนี้วันอะไร?", emoji: "❓" },
           { id: 20, category: "2. หมวดวันทั้ง 7 (Weeks)", chinese: "今天星期一。", pinyin: "jīn tiān xīng qī yī", thai: "วันนี้คือวันจันทร์", emoji: "✅" }, // FIXED: ลบ "ยี่" ออกจากจีน
           { id: 21, category: "2. หมวดวันทั้ง 7 (Weeks)", chinese: "今天几月几号？", pinyin: "jīn tiān jǐ yuè jǐ hao?", thai: "วันนี้วันที่เท่าไหร่เดือนอะไร?", emoji: "📅" },
@@ -1163,12 +1163,12 @@
           { id: 41, category: "4. วันเกิด & อารมณ์ (Birthday)", chinese: "开心", pinyin: "kāi xīn", thai: "ดีใจ / มีความสุข", emoji: "😊" },
           { id: 42, category: "4. วันเกิด & อารมณ์ (Birthday)", chinese: "祝", pinyin: "zhù", thai: "อวยพร / ขอให้", emoji: "🤝" },
           { id: 43, category: "4. วันเกิด & อารมณ์ (Birthday)", chinese: "快乐", pinyin: "kuài lè", thai: "มีความสุข", emoji: "🎉" },
-          { id: 44, category: "4. วันเกิด & อารมณ์ (Birthday)", chinese: "你的生日是几月几号？", pinyin: "nǐ de sheng rì shì jǐ yuè jǐ hào", thai: "วันเกิดของคุณคือวันที่เท่าไหร่?", emoji: "📅" }, // FIXED: ลบ "เป็น" ไทยออก
-          { id: 45, category: "4. วันเกิด & อารมณ์ (Birthday)", chinese: "我的生日是五月十号。", pinyin: "wǒ de sheng rì shì wǔ yuè shí hào", thai: "วันเกิดของฉันคือวันที่ 10 พฤษภาคม", emoji: "🎈" }, // FIXED: ลบ "เป็น" ไทยออก
+          { id: 44, category: "4. วันเกิด & อารมณ์ (Birthday)", chinese: "你的生日เป็น几月几号？", pinyin: "nǐ de sheng rì s​​hì jǐ yuè jǐ hào", thai: "วันเกิดของคุณคือวันที่เท่าไหร่?", emoji: "📅" }, // FIXED: ลบ "เป็น" ไทยออก
+          { id: 45, category: "4. วันเกิด & อารมณ์ (Birthday)", chinese: "我的生日เป็น五月十号。", pinyin: "wǒ de sheng rì s​​hì wǔ yuè shí hào", thai: "วันเกิดของฉันคือวันที่ 10 พฤษภาคม", emoji: "🎈" }, // FIXED: ลบ "เป็น" ไทยออก
           { id: 46, category: "4. วันเกิด & อารมณ์ (Birthday)", chinese: "你几岁了？", pinyin: "nǐ jǐ suì le?", thai: "คุณอายุเท่าไหร่?", emoji: "🧒" }, // FIXED: ลบอักษรไทยออก
           { id: 47, category: "4. วันเกิด & อารมณ์ (Birthday)", chinese: "我七岁了。", pinyin: "wǒ qī suì le", thai: "ฉันอายุเจ็ดขวบแล้ว", emoji: "7️⃣" },
-          { id: 48, category: "4. วันเกิด & อารมณ์ (Birthday)", chinese: "你今天开心吗？", pinyin: "nǐ jìn tiān kāi xīn ma?", thai: "วันนี้คุณมีความสุขไหม?", emoji: "😄" }, // FIXED: ลบคำแปลไทยและเปลี่ยน pinyin เป็น jîn tiān ให้สอดคล้องกัน
-          { id: 49, category: "4. วันเกิด & อารมณ์ (Birthday)", chinese: "我今天很开心。", pinyin: "wǒ jīn tiān hěn kāi xīn", thai: "วันนี้ฉันมีความสุขมาก", emoji: "🥰" } // FIXED: ลบ "วันนี้" ไทยออก
+          { id: 48, category: "4. วันเกิด & อารมณ์ (Birthday)", chinese: "คุณวันนี้มีความสุขไหม？", pinyin: "nǐ jìn tiān kāi xīn ma?", thai: "วันนี้คุณมีความสุขไหม?", emoji: "😄" }, // FIXED: ลบคำแปลไทยและเปลี่ยน pinyin เป็น jîn tiān ให้สอดคล้องกัน
+          { id: 49, category: "4. วันเกิด & อารมณ์ (Birthday)", chinese: "我วันนี้很开心。", pinyin: "wǒ jīn tiān hěn kāi xīn", thai: "วันนี้ฉันมีความสุขมาก", emoji: "🥰" } // FIXED: ลบ "วันนี้" ไทยออก
         ];
 
         // Custom Toast Notifications
@@ -1662,16 +1662,7 @@
         };
 
         // Directly trigger speech sound from board button (User-initiated direct click!)
-        // ป้องกันสิทธิ์การสั่นสะเทือนสัญญาณสะดุดบน LINE App WebView
-        let lastSpeakTime = 0;
         const speakAndMarkQuiz = (card, event) => {
-          if (event) {
-            const now = Date.now();
-            if (now - lastSpeakTime < 400) {
-              return; // บล็อกสัญญาณซ้ำซ้อนเพื่อป้องกันเสียงกระตุกหรือสะดุดในเบราว์เซอร์ LINE
-            }
-            lastSpeakTime = now;
-          }
           speakChinese(card.chinese, true);
         };
 
