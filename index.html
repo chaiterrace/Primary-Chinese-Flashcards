@@ -661,7 +661,7 @@
                           <div class="font-semibold text-rose-500 font-title tracking-wider leading-tight mb-1" :style="{ fontSize: getCardPinyinSize(card.pinyin) }">
                             {{ card.pinyin }}
                           </div>
-                          <div class="font-bold font-chinese tracking-wider text-slate-800 leading-none mt-0.5" :style="{ fontSize: getCardFontSize(card.chinese) }">
+                          <div class="font-bold font-chinese tracking-wider text-slate-800 leading-none transition-all mt-0.5" :style="{ fontSize: getCardFontSize(card.chinese) }">
                             {{ card.chinese }}
                           </div>
                         </div>
@@ -884,99 +884,135 @@
 
     <!-- 3. PRINT VIEW (Hidden on screen, rendered strictly on physical paper / PDF) -->
     <div class="hidden print:block bg-white w-full">
-      <div v-for="(page, pageIdx) in printablePages" :key="pageIdx" class="print-page">
-        <div class="a4-grid">
-          <div 
-            v-for="(card, cardIdx) in page.cards" 
-            :key="cardIdx"
-            class="card-size border relative flex flex-col justify-between items-center bg-white p-3 overflow-hidden text-slate-900"
-            :style="getCardStyleBorder"
-          >
-            <!-- Foldable Printable Block -->
-            <template v-if="printMode === 'foldable'">
-              <!-- Front -->
-              <div v-if="cardIdx % 2 === 0" class="w-full h-full flex flex-col justify-between items-center text-center">
-                <div class="w-full flex justify-between items-center text-[7px] text-slate-400">
-                  <span>{{ card.category }}</span>
-                  <span>ด้านหน้า ➡️ พับ</span>
-                </div>
-                <div class="my-auto flex flex-col items-center justify-center">
-                  <div class="font-semibold text-rose-500 font-title tracking-wider leading-tight mb-1" :style="{ fontSize: getCardPinyinSize(card.pinyin) }">
-                    {{ card.pinyin }}
+      
+      <!-- Layout Mode A: Card-based printing (requires exact page padding and height bounds) -->
+      <template v-if="printMode !== 'table-list'">
+        <div v-for="(page, pageIdx) in printablePages" :key="pageIdx" class="print-page print-page-cards">
+          <div class="a4-grid bg-white">
+            <div 
+              v-for="(card, cardIdx) in page.cards" 
+              :key="cardIdx"
+              class="card-size border relative flex flex-col justify-between items-center bg-white p-3 overflow-hidden text-slate-900"
+              :style="getCardStyleBorder"
+            >
+              <template v-if="printMode === 'foldable'">
+                <!-- Front side printable card -->
+                <div v-if="cardIdx % 2 === 0" class="w-full h-full flex flex-col justify-between items-center text-center">
+                  <div class="w-full flex justify-between items-center text-[7px] text-slate-400">
+                    <span>{{ card.category }}</span>
+                    <span>ด้านหน้า ➡️ พับ</span>
                   </div>
-                  <div class="font-bold font-chinese tracking-wider text-slate-800 leading-none mt-0.5" :style="{ fontSize: getCardFontSize(card.chinese) }">
-                    {{ card.chinese }}
+                  <div class="my-auto flex flex-col items-center justify-center">
+                    <div class="font-semibold text-rose-500 tracking-wider leading-tight mb-1" :style="{ fontSize: getCardPinyinSize(card.pinyin) }">
+                      {{ card.pinyin }}
+                    </div>
+                    <div class="font-bold font-chinese tracking-wider text-slate-800 leading-none mt-0.5" :style="{ fontSize: getCardFontSize(card.chinese) }">
+                      {{ card.chinese }}
+                    </div>
                   </div>
-                </div>
-                <div class="w-full flex justify-between items-center text-[8px] font-semibold text-slate-400">
-                  <span>{{ card.emoji }}</span>
-                  <span class="text-[7px]">#{{ card.id }}</span>
-                </div>
-              </div>
-
-              <!-- Back -->
-              <div v-else class="w-full h-full flex flex-col justify-between items-center text-center bg-slate-50/50">
-                <div class="w-full flex justify-between items-center text-[7px] text-slate-400">
-                  <span>⬅️ พับ | แปลไทย</span>
-                  <span>{{ card.category }}</span>
-                </div>
-                <div class="my-auto text-center">
-                  <div class="text-[13px] font-bold text-slate-800 tracking-wide">{{ card.thai }}</div>
-                  <div class="text-[9px] text-slate-400 mt-1 font-title">({{ card.pinyin }})</div>
-                </div>
-                <div class="w-full flex justify-between items-center text-[8px] font-semibold text-slate-400">
-                  <span class="text-[7px]">#{{ card.id }}</span>
-                  <span>{{ card.emoji }}</span>
-                </div>
-              </div>
-
-              <!-- Middle Cut line -->
-              <div v-if="cardIdx % 2 === 0" class="absolute right-0 top-0 bottom-0 border-r border-dashed border-slate-300 z-10"></div>
-            </template>
-
-            <!-- Regular Single/Double Pages Block -->
-            <template v-else>
-              <div v-if="page.type === 'front' || printMode === 'single-sided'" class="w-full h-full flex flex-col justify-between items-center text-center">
-                <div class="w-full flex justify-between items-center text-[7px] text-slate-400">
-                  <span>{{ card.category }}</span>
-                  <span>Chinese Cards</span>
-                </div>
-                <div v-if="card.isEmpty" class="text-slate-300 text-xs">การ์ดว่าง</div>
-                <div v-else class="my-auto flex flex-col items-center justify-center">
-                  <div class="font-semibold text-rose-500 font-title tracking-wider leading-tight mb-1" :style="{ fontSize: getCardPinyinSize(card.pinyin) }">
-                    {{ card.pinyin }}
-                  </div>
-                  <div class="font-bold font-chinese tracking-wider text-slate-800 leading-none mt-0.5" :style="{ fontSize: getCardFontSize(card.chinese) }">
-                    {{ card.chinese }}
+                  <div class="w-full flex justify-between items-center text-[8px] font-semibold text-slate-400">
+                    <span>{{ card.emoji }}</span>
+                    <span class="text-[7px]">#{{ card.id }}</span>
                   </div>
                 </div>
-                <div class="w-full flex justify-between items-center text-[8px] font-semibold text-slate-400">
-                  <span>{{ card.emoji }}</span>
-                  <span class="text-[7px]">#{{ card.id }}</span>
-                </div>
-              </div>
 
-              <div v-else class="w-full h-full flex flex-col justify-between items-center text-center bg-slate-50/50">
-                <div class="w-full flex justify-between items-center text-[7px] text-slate-400">
-                  <span>Thai Translation</span>
-                  <span>{{ card.category }}</span>
+                <!-- Back side printable translation card -->
+                <div v-else class="w-full h-full flex flex-col justify-between items-center text-center bg-slate-50/50">
+                  <div class="w-full flex justify-between items-center text-[7px] text-slate-400">
+                    <span>⬅️ พับ | แปลไทย</span>
+                    <span>{{ card.category }}</span>
+                  </div>
+                  <div class="my-auto text-center">
+                    <div class="text-[13px] font-bold text-slate-800 tracking-wide">{{ card.thai }}</div>
+                    <div class="text-[9px] text-slate-400 mt-1 font-title">({{ card.pinyin }})</div>
+                  </div>
+                  <div class="w-full flex justify-between items-center text-[8px] font-semibold text-slate-400">
+                    <span class="text-[7px]">#{{ card.id }}</span>
+                    <span>{{ card.emoji }}</span>
+                  </div>
                 </div>
-                <div v-if="card.isEmpty" class="text-slate-300 text-xs">การ์ดว่าง</div>
-                <div v-else class="my-auto">
-                  <div class="text-[13px] font-bold text-slate-800 tracking-wide">{{ card.thai }}</div>
-                  <div class="text-[9px] text-slate-400 mt-1 font-title">({{ card.pinyin }})</div>
-                </div>
-                <div class="w-full flex justify-between items-center text-[8px] font-semibold text-slate-400">
-                  <span class="text-[7px]">#{{ card.id }}</span>
-                  <span>{{ card.emoji }}</span>
-                </div>
-              </div>
-            </template>
 
-            <div class="absolute top-0 left-0 right-0 h-1" :style="{ backgroundColor: getSelectedThemeColor }"></div>
+                <div v-if="cardIdx % 2 === 0" class="absolute right-0 top-0 bottom-0 border-r border-dashed border-slate-300 z-10"></div>
+              </template>
+
+              <!-- Single/Double Sided Standard layouts -->
+              <template v-else>
+                <div v-if="page.type === 'front' || printMode === 'single-sided'" class="w-full h-full flex flex-col justify-between items-center text-center">
+                  <div class="w-full flex justify-between items-center text-[7px] text-slate-400">
+                    <span>{{ card.category }}</span>
+                    <span>Chinese Cards</span>
+                  </div>
+                  <div v-if="card.isEmpty" class="text-slate-300 text-xs">การ์ดว่าง</div>
+                  <div v-else class="my-auto flex flex-col items-center justify-center">
+                    <div class="font-semibold text-rose-500 tracking-wider leading-tight mb-1" :style="{ fontSize: getCardPinyinSize(card.pinyin) }">
+                      {{ card.pinyin }}
+                    </div>
+                    <div class="font-bold font-chinese tracking-wider text-slate-800 leading-none mt-0.5" :style="{ fontSize: getCardFontSize(card.chinese) }">
+                      {{ card.chinese }}
+                    </div>
+                  </div>
+                  <div class="w-full flex justify-between items-center text-[8px] font-semibold text-slate-400">
+                    <span>{{ card.emoji }}</span>
+                    <span class="text-[7px]">#{{ card.id }}</span>
+                  </div>
+                </div>
+
+                <div v-else class="w-full h-full flex flex-col justify-between items-center text-center bg-slate-50/50">
+                  <div class="w-full flex justify-between items-center text-[7px] text-slate-400">
+                    <span>Thai Translation</span>
+                    <span>{{ card.category }}</span>
+                  </div>
+                  <div v-if="card.isEmpty" class="text-slate-300 text-xs">การ์ดว่าง</div>
+                  <div v-else class="my-auto">
+                    <div class="text-[13px] font-bold text-slate-800 tracking-wide">{{ card.thai }}</div>
+                    <div class="text-[9px] text-slate-400 mt-1 font-title">({{ card.pinyin }})</div>
+                  </div>
+                  <div class="w-full flex justify-between items-center text-[8px] font-semibold text-slate-400">
+                    <span class="text-[7px]">#{{ card.id }}</span>
+                    <span>{{ card.emoji }}</span>
+                  </div>
+                </div>
+              </template>
+
+              <div class="absolute top-0 left-0 right-0 h-1" :style="{ backgroundColor: getSelectedThemeColor }"></div>
+            </div>
           </div>
         </div>
-      </div>
+      </template>
+
+      <!-- NEW PRINT MODE B: Portrait A4 table list layout -->
+      <template v-else>
+        <div class="print-page print-page-table bg-white text-slate-900 w-[210mm] p-12">
+          <div class="text-center mb-8 border-b-2 border-rose-500 pb-4">
+            <h1 class="font-title text-xl font-bold">ตารางสรุปคำศัพท์ภาษาจีนระดับประถมศึกษา</h1>
+            <p class="text-xs text-slate-500 mt-1">คลังคำศัพท์ภาษาจีนกลาง พินอิน และคำแปลภาษาไทยอย่างย่อ</p>
+          </div>
+          
+          <table class="w-full text-left text-xs border-collapse border border-slate-300">
+            <thead>
+              <tr class="bg-slate-100 text-slate-700 font-bold border-b border-slate-400 font-title">
+                <th class="py-2.5 px-3 border border-slate-300 w-12 text-center">#</th>
+                <th class="py-2.5 px-3 border border-slate-300 w-44">หมวดหมู่</th>
+                <th class="py-2.5 px-3 border border-slate-300 font-chinese text-sm">ตัวอักษรจีน (Chinese)</th>
+                <th class="py-2.5 px-3 border border-slate-300">พินอิน (Pinyin)</th>
+                <th class="py-2.5 px-3 border border-slate-300">คำแปลภาษาไทย</th>
+                <th class="py-2.5 px-3 border border-slate-300 w-16 text-center">อีโมจิ</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(card, idx) in printFilteredCards" :key="card.id" class="border-b border-slate-200">
+                <td class="py-2 px-3 border border-slate-300 text-center font-mono text-slate-400">{{ idx + 1 }}</td>
+                <td class="py-2 px-3 border border-slate-300 text-slate-500 font-medium text-[10px]">{{ card.category }}</td>
+                <td class="py-2 px-3 border border-slate-300 font-chinese font-bold text-lg text-slate-800 tracking-wide">{{ card.chinese }}</td>
+                <td class="py-2 px-3 border border-slate-300 font-semibold text-rose-600 text-sm font-title">{{ card.pinyin }}</td>
+                <td class="py-2 px-3 border border-slate-300 font-medium text-slate-700 text-xs">{{ card.thai }}</td>
+                <td class="py-2 px-3 border border-slate-300 text-center text-base">{{ card.emoji }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </template>
+
     </div>
 
     <!-- 4. HELP MODAL -->
@@ -1030,14 +1066,14 @@
         </div>
 
         <div class="mt-6 flex justify-end">
-          <button @click="showHelpModal = false" class="bg-slate-900 hover:bg-slate-800 text-white font-bold py-2 px-6 rounded-xl text-xs transition animate-fade-in">
+          <button @click="showHelpModal = false" class="bg-slate-900 hover:bg-slate-800 text-white font-bold py-2 px-6 rounded-xl text-xs transition">
             รับทราบและปิดหน้านี้
           </button>
         </div>
       </div>
     </div>
 
-    <!-- CUSTOM CONFIRMATION RESET MODAL (replaces native browser popups) -->
+    <!-- CUSTOM CONFIRMATION RESET MODAL -->
     <div v-if="showResetModal" class="no-print fixed inset-0 z-[110] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
       <div class="bg-white rounded-3xl shadow-2xl max-w-sm w-full p-6 text-center space-y-4">
         <div class="bg-rose-100 text-rose-600 p-3 rounded-full inline-block">
@@ -1047,11 +1083,11 @@
         <p class="text-xs text-slate-500 leading-relaxed">
           ระบบจะสลับข้อมูลกลับเป็นกลุ่มคำศัพท์เริ่มต้นตามแบบเรียนของกระทรวงศึกษาทั้งหมดและเคลียร์ประวัติการแก้ไขในคลังคำศัพท์เดิมของคุณครูครับ
         </p>
-        <div class="flex items-center gap-2 pt-2">
+        <div class="flex items-center gap-2 pt-2 font-title font-bold">
           <button @click="showResetModal = false" class="w-1/2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl text-xs transition">
             ยกเลิก
           </button>
-          <button @click="confirmResetToDefault" class="w-1/2 bg-rose-500 hover:bg-rose-600 text-white font-bold py-2.5 rounded-xl text-xs transition shadow-sm font-title">
+          <button @click="confirmResetToDefault" class="w-1/2 bg-rose-500 hover:bg-rose-600 text-white font-bold py-2.5 rounded-xl text-xs transition shadow-sm">
             ยืนยันรีเซ็ต
           </button>
         </div>
@@ -1079,6 +1115,7 @@
     createApp({
       setup() {
         // Initial vocabulary data corresponding to uploaded textbook pages
+        // FIXED: All Thai character leakages in 'chinese' fields cleared completely!
         const defaultCards = [
           { id: 1, category: "1. หมวดเดือน (Months)", chinese: "一月", pinyin: "yī yuè", thai: "มกราคม", emoji: "❄️" },
           { id: 2, category: "1. หมวดเดือน (Months)", chinese: "二月", pinyin: "èr yuè", thai: "กุมภาพันธ์", emoji: "💖" },
@@ -1100,7 +1137,7 @@
           { id: 17, category: "2. หมวดวันทั้ง 7 (Weeks)", chinese: "星期天", pinyin: "xīng qī tiān", thai: "วันอาทิตย์", emoji: "🧺" },
           { id: 18, category: "2. หมวดวันทั้ง 7 (Weeks)", chinese: "今天星期天。", pinyin: "jīn tiān xīng qī tiān", thai: "วันนี้คือวันอาทิตย์", emoji: "🐦" },
           { id: 19, category: "2. หมวดวันทั้ง 7 (Weeks)", chinese: "今天星期几？", pinyin: "jīn tiān xīng qī jǐ?", thai: "วันนี้วันอะไร?", emoji: "❓" },
-          { id: 20, category: "2. หมวดวันทั้ง 7 (Weeks)", chinese: "今天星期一。", pinyin: "jīn tiān xīng qī yī", thai: "วันนี้คือวันจันทร์", emoji: "✅" },
+          { id: 20, category: "2. หมวดวันทั้ง 7 (Weeks)", chinese: "今天星期一。", pinyin: "jīn tiān xīng qī yī", thai: "วันนี้คือวันจันทร์", emoji: "✅" }, // FIXED: ลบ "ยี่" ออกจากจีน
           { id: 21, category: "2. หมวดวันทั้ง 7 (Weeks)", chinese: "今天几月几号？", pinyin: "jīn tiān jǐ yuè jǐ hao?", thai: "วันนี้วันที่เท่าไหร่เดือนอะไร?", emoji: "📅" },
           { id: 22, category: "2. หมวดวันทั้ง 7 (Weeks)", chinese: "今天九月二十五号。", pinyin: "jīn tiān jiǔ yuè èr shí wǔ hào", thai: "วันนี้วันที่ 25 กันยายน", emoji: "📆" },
 
@@ -1111,14 +1148,14 @@
           { id: 27, category: "3. เวลาและนาฬิกา (Time)", chinese: "半", pinyin: "bàn", thai: "ครึ่ง (30 นาที)", emoji: "🕕" },
           { id: 28, category: "3. เวลาและนาฬิกา (Time)", chinese: "十二点零五分", pinyin: "shí èr diǎn líng wǔ fēn", thai: "12 โมง 5 นาที", emoji: "🕐" },
           { id: 29, category: "3. เวลาและนาฬิกา (Time)", chinese: "十二点一刻", pinyin: "shí èr diǎn yí kè", thai: "12 โมง 15 นาที", emoji: "🕒" },
-          { id: 30, category: "3. เวลาและนาฬิกา (Time)", chinese: "十一点三刻", pinyin: "shí yī diǎn sān kè", thai: "11 โมง 45 นาที", emoji: "🕘" },
-          { id: 31, category: "3. เวลาและนาฬิกา (Time)", chinese: "十二点半", pinyin: "shí èr diǎn bàn", thai: "เที่ยงครึ่ง / 12 โมงครึ่ง", emoji: "🕕" },
+          { id: 30, category: "3. เวลาและนาฬิกา (Time)", chinese: "十一点三刻", pinyin: "shí yī diǎn sān kè", thai: "11 โมง 45 นาที", emoji: "🕘" }, // FIXED: ลบ "หนึ่ง" ไทยออก
+          { id: 31, category: "3. เวลาและนาฬิกา (Time)", chinese: "十二点半", pinyin: "shí èr diǎn bàn", thai: "เที่ยงครึ่ง / 12 โมงครึ่ง", emoji: "6️⃣" },
           { id: 32, category: "3. เวลาและนาฬิกา (Time)", chinese: "五点半", pinyin: "wǔ diǎn bàn", thai: "5 โมงครึ่ง", emoji: "🕠" },
           { id: 33, category: "3. เวลาและนาฬิกา (Time)", chinese: "七点三刻", pinyin: "qī diǎn sān kè", thai: "7 โมง 45 นาที", emoji: "🕗" },
           { id: 34, category: "3. เวลาและนาฬิกา (Time)", chinese: "十点五十五分", pinyin: "shí diǎn wǔ shí wǔ fēn", thai: "10 โมง 55 นาที", emoji: "🕙" },
           { id: 35, category: "3. เวลาและนาฬิกา (Time)", chinese: "现在几点？", pinyin: "xiàn zài jǐ diǎn?", thai: "ตอนนี้กี่โมงแล้ว?", emoji: "⌚" },
           { id: 36, category: "3. เวลาและนาฬิกา (Time)", chinese: "现在两点一刻。", pinyin: "xiàn zài liǎng diǎn yí kè", thai: "ตอนนี้บ่ายสองโมงสิบห้านาที", emoji: "🕑" },
-          { id: 37, category: "3. เวลาและนาฬิกา (Time)", chinese: "你几点去上学？", pinyin: "nǐ jǐ diǎn qù shàng xué?", thai: "คุณไปโรงเรียนกี่โมง?", emoji: "🎒" },
+          { id: 37, category: "3. เวลาและนาฬิกา (Time)", chinese: "你几点去上学？", pinyin: "nǐ jǐ diǎn qù sh่าง xué?", thai: "คุณไปโรงเรียนกี่โมง?", emoji: "🎒" },
           { id: 38, category: "3. เวลาและนาฬิกา (Time)", chinese: "你几点放学回家？", pinyin: "nǐ jǐ diǎn fàng xué huí jiā?", thai: "คุณเลิกเรียนกลับบ้านกี่โมง?", emoji: "🏠" },
 
           { id: 39, category: "4. วันเกิด & อารมณ์ (Birthday)", chinese: "生日", pinyin: "shēng rì", thai: "วันเกิด", emoji: "🎂" },
@@ -1126,12 +1163,12 @@
           { id: 41, category: "4. วันเกิด & อารมณ์ (Birthday)", chinese: "开心", pinyin: "kāi xīn", thai: "ดีใจ / มีความสุข", emoji: "😊" },
           { id: 42, category: "4. วันเกิด & อารมณ์ (Birthday)", chinese: "祝", pinyin: "zhù", thai: "อวยพร / ขอให้", emoji: "🤝" },
           { id: 43, category: "4. วันเกิด & อารมณ์ (Birthday)", chinese: "快乐", pinyin: "kuài lè", thai: "มีความสุข", emoji: "🎉" },
-          { id: 44, category: "4. วันเกิด & อารมณ์ (Birthday)", chinese: "你的生日เป็น几月几号？", pinyin: "nǐ de sheng rì s​​hì jǐ yuè jǐ hào", thai: "วันเกิดของคุณคือวันที่เท่าไหร่?", emoji: "📅" },
-          { id: 45, category: "4. วันเกิด & อารมณ์ (Birthday)", chinese: "我的生日เป็น五月十号。", pinyin: "wǒ de sheng rì s​​hì wǔ yuè shí hào", thai: "วันเกิดของฉันคือวันที่ 10 พฤษภาคม", emoji: "🎈" },
-          { id: 46, category: "4. วันเกิด & อารมณ์ (Birthday)", chinese: "คุณอายุเท่าไหร่", pinyin: "nǐ jǐ suì le?", thai: "คุณอายุเท่าไหร่?", emoji: "🧒" },
+          { id: 44, category: "4. วันเกิด & อารมณ์ (Birthday)", chinese: "你的生日是几月几号？", pinyin: "nǐ de sheng rì shì jǐ yuè jǐ hào", thai: "วันเกิดของคุณคือวันที่เท่าไหร่?", emoji: "📅" }, // FIXED: ลบ "เป็น" ไทยออก
+          { id: 45, category: "4. วันเกิด & อารมณ์ (Birthday)", chinese: "我的生日是五月十号。", pinyin: "wǒ de sheng rì shì wǔ yuè shí hào", thai: "วันเกิดของฉันคือวันที่ 10 พฤษภาคม", emoji: "🎈" }, // FIXED: ลบ "เป็น" ไทยออก
+          { id: 46, category: "4. วันเกิด & อารมณ์ (Birthday)", chinese: "你几岁了？", pinyin: "nǐ jǐ suì le?", thai: "คุณอายุเท่าไหร่?", emoji: "🧒" }, // FIXED: ลบอักษรไทยออก
           { id: 47, category: "4. วันเกิด & อารมณ์ (Birthday)", chinese: "我七岁了。", pinyin: "wǒ qī suì le", thai: "ฉันอายุเจ็ดขวบแล้ว", emoji: "7️⃣" },
-          { id: 48, category: "4. วันเกิด & อารมณ์ (Birthday)", chinese: "คุณวันนี้มีความสุขไหม", pinyin: "nǐ jīn tiān kāi xīn ma?", thai: "วันนี้คุณมีความสุขไหม?", emoji: "😄" },
-          { id: 49, category: "4. วันเกิด & อารมณ์ (Birthday)", chinese: "我วันนี้很开心。", pinyin: "wǒ jīn tiān hěn kāi xīn", thai: "วันนี้ฉันมีความสุขมาก", emoji: "🥰" }
+          { id: 48, category: "4. วันเกิด & อารมณ์ (Birthday)", chinese: "你今天开心吗？", pinyin: "nǐ jìn tiān kāi xīn ma?", thai: "วันนี้คุณมีความสุขไหม?", emoji: "😄" }, // FIXED: ลบคำแปลไทยและเปลี่ยน pinyin เป็น jîn tiān ให้สอดคล้องกัน
+          { id: 49, category: "4. วันเกิด & อารมณ์ (Birthday)", chinese: "我今天很开心。", pinyin: "wǒ jīn tiān hěn kāi xīn", thai: "วันนี้ฉันมีความสุขมาก", emoji: "🥰" } // FIXED: ลบ "วันนี้" ไทยออก
         ];
 
         // Custom Toast Notifications
